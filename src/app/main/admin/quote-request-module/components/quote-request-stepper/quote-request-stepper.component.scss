@@ -1,0 +1,43 @@
+.quote-stepper {
+  background: transparent;
+  width: 100%;
+}
+
+/* Le panneau de chaque étape */
+.step-content {
+  padding: 1.5rem 0 0;
+  max-width: 860px;
+}
+
+/* Surcharge du header stepper pour le rendre plus compact et élégant */
+::ng-deep .quote-stepper .mat-stepper-horizontal-line {
+  border-top-color: #cbd5e1;
+}
+
+::ng-deep .quote-stepper .mat-step-header {
+  padding: 0.75rem 1.25rem;
+}
+
+::ng-deep .quote-stepper .mat-step-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+::ng-deep .quote-stepper .mat-step-label-active {
+  color: #1a56db;
+}
+
+::ng-deep .quote-stepper .mat-step-header .mat-step-icon {
+  background-color: #cbd5e1;
+  color: #475569;
+}
+
+::ng-deep .quote-stepper .mat-step-header .mat-step-icon-selected {
+  background-color: #1a56db;
+  color: #fff;
+}
+
+::ng-deep .quote-stepper .mat-step-header .mat-step-icon-state-done {
+  background-color: #16a34a;
+  color: #fff;
+}

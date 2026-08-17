@@ -1,0 +1,174 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+  <!-- ─── Contrat précédent ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">📄</span>
+      Contrat précédent
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Compagnie précédente</mat-label>
+        <input matInput formControlName="previousInsurer" placeholder="Ex : AXA, Allianz…" id="hist-previousInsurer" />
+        <mat-icon matSuffix>business</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date début du contrat précédent</mat-label>
+        <input
+          matInput
+          [matDatepicker]="startDatePicker"
+          formControlName="previousContractStartDate"
+          placeholder="JJ/MM/AAAA"
+          id="hist-contractStartDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="startDatePicker" />
+        <mat-datepicker #startDatePicker />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date fin du contrat précédent</mat-label>
+        <input
+          matInput
+          [matDatepicker]="endDatePicker"
+          formControlName="previousContractEndDate"
+          placeholder="JJ/MM/AAAA"
+          id="hist-contractEndDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="endDatePicker" />
+        <mat-datepicker #endDatePicker />
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Historique sinistres ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">📊</span>
+      Historique &amp; Sinistralité
+    </h3>
+
+    <div class="info-box">
+      <mat-icon class="info-icon">info</mat-icon>
+      <span>Cochez "Je ne sais pas" si l'information est inconnue. <strong>Ne laissez pas 0 par défaut si vous n'avez pas l'information.</strong></span>
+    </div>
+
+    <!-- Ancienneté -->
+    <div class="knowledge-field">
+      <mat-form-field appearance="outline" class="knowledge-input">
+        <mat-label>Ancienneté (années)</mat-label>
+        <input matInput type="number" formControlName="seniorityValue" min="0" id="hist-seniority" />
+      </mat-form-field>
+      <mat-checkbox formControlName="seniorityUnknown" color="warn" id="hist-seniority-unknown">
+        Je ne sais pas
+      </mat-checkbox>
+    </div>
+
+    <!-- Bonus/Malus -->
+    <div class="knowledge-field">
+      <mat-form-field appearance="outline" class="knowledge-input">
+        <mat-label>Coefficient Bonus / Malus</mat-label>
+        <input matInput type="number" formControlName="bonusMalusValue" step="0.01" min="0.5" max="3.5" id="hist-bonusMalus" />
+        <mat-hint>Ex : 0.85, 1.00, 1.25</mat-hint>
+      </mat-form-field>
+      <mat-checkbox formControlName="bonusMalusUnknown" color="warn" id="hist-bonusMalus-unknown">
+        Je ne sais pas
+      </mat-checkbox>
+    </div>
+
+    <!-- Nombre de sinistres -->
+    <div class="knowledge-field">
+      <mat-form-field appearance="outline" class="knowledge-input">
+        <mat-label>Nombre de sinistres déclarés</mat-label>
+        <input matInput type="number" formControlName="claimsCountValue" min="0" id="hist-claimsCount" />
+      </mat-form-field>
+      <mat-checkbox formControlName="claimsCountUnknown" color="warn" id="hist-claimsCount-unknown">
+        Je ne sais pas
+      </mat-checkbox>
+    </div>
+
+    <!-- Sinistres responsables -->
+    <div class="knowledge-field">
+      <mat-form-field appearance="outline" class="knowledge-input">
+        <mat-label>Dont sinistres responsables</mat-label>
+        <input matInput type="number" formControlName="responsibleClaimsValue" min="0" id="hist-responsibleClaims" />
+      </mat-form-field>
+      <mat-checkbox formControlName="responsibleClaimsUnknown" color="warn" id="hist-responsibleClaims-unknown">
+        Je ne sais pas
+      </mat-checkbox>
+    </div>
+
+    <!-- Sinistres non responsables -->
+    <div class="knowledge-field">
+      <mat-form-field appearance="outline" class="knowledge-input">
+        <mat-label>Dont sinistres non responsables</mat-label>
+        <input matInput type="number" formControlName="nonResponsibleClaimsValue" min="0" id="hist-nonResponsibleClaims" />
+      </mat-form-field>
+      <mat-checkbox formControlName="nonResponsibleClaimsUnknown" color="warn" id="hist-nonResponsibleClaims-unknown">
+        Je ne sais pas
+      </mat-checkbox>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Résiliation ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">⚠️</span>
+      Résiliation
+    </h3>
+
+    <div class="checkbox-row">
+      <mat-checkbox formControlName="wasTerminated" color="warn" id="hist-wasTerminated">
+        Le contrat précédent a été résilié
+      </mat-checkbox>
+    </div>
+
+    @if (wasTerminated) {
+      <div class="termination-details">
+        <div class="checkbox-row">
+          <mat-checkbox formControlName="terminatedByInsurer" color="warn" id="hist-terminatedByInsurer">
+            Résilié par la compagnie (et non par l'assuré)
+          </mat-checkbox>
+        </div>
+
+        <div class="fields-grid">
+          <mat-form-field appearance="outline" class="field-full">
+            <mat-label>Motif de résiliation</mat-label>
+            <input matInput formControlName="terminationReason" placeholder="Ex : Non-paiement, Sinistres…" id="hist-terminationReason" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date de résiliation</mat-label>
+            <input
+              matInput
+              [matDatepicker]="terminationDatePicker"
+              formControlName="terminationDate"
+              placeholder="JJ/MM/AAAA"
+              id="hist-terminationDate"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="terminationDatePicker" />
+            <mat-datepicker #terminationDatePicker />
+          </mat-form-field>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- ─── Actions ─── -->
+  <div class="step-actions">
+    <button mat-stroked-button type="button" (click)="onPrev()" id="history-form-prev">
+      <mat-icon>arrow_back</mat-icon>
+      Précédent
+    </button>
+    <button mat-flat-button color="primary" type="submit" id="history-form-next">
+      Récapitulatif
+      <mat-icon iconPositionEnd>summarize</mat-icon>
+    </button>
+  </div>
+
+</form>

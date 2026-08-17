@@ -1,0 +1,13 @@
+<div class="page-wrapper">
+
+  <div class="header-row">
+    <app-page-header heading="Mes extranets" subheading="Les formulaires des compagnies que vous utilisez" />
+    <a mat-flat-button color="primary" routerLink="/admin/mes-extranets/nouveau">
+      <mat-icon>add</mat-icon>
+      Ajouter un extranet
+    </a>
+  </div>
+
+  <app-extranet-link-list [links]="links()" (toggleActive)="onToggleActive($event)" />
+
+</div>

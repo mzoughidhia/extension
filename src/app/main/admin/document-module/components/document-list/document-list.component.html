@@ -1,0 +1,53 @@
+@if (documents().length === 0) {
+  <p class="empty-hint">Aucun document ajouté pour le moment.</p>
+} @else {
+  <div class="document-list">
+    @for (document of documents(); track document.id) {
+      <div class="document-row">
+        <div class="document-main">
+          <span class="status-icon">
+            @switch (document.ocrStatus) {
+              @case ('processing') {
+                <mat-spinner diameter="18" />
+              }
+              @case ('done') {
+                ✓
+              }
+              @case ('error') {
+                ⚠
+              }
+              @default {
+                ○
+              }
+            }
+          </span>
+
+          <div class="document-info">
+            <p class="document-type">{{ documentTypeLabels[document.type] }}</p>
+            <p class="document-status">{{ statusLabel(document) }}</p>
+          </div>
+        </div>
+
+        <div class="document-actions">
+          @if (document.ocrStatus === 'pending' || document.ocrStatus === 'error') {
+            <button mat-stroked-button (click)="onRunOcr(document)">Lire le document</button>
+          }
+          @if (document.ocrStatus === 'error') {
+            <button mat-stroked-button (click)="onRunOcr(document)">Réessayer</button>
+          }
+          @if (document.ocrStatus === 'done') {
+            <button mat-button (click)="toggleExpanded(document)">
+              {{ isExpanded(document) ? 'Masquer' : 'Voir les informations' }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (isExpanded(document) && document.ocrStatus === 'done') {
+        <p class="document-detail">
+          {{ document.extractedFieldCount }} information(s) ont été ajoutées ou proposées au dossier depuis ce document.
+        </p>
+      }
+    }
+  </div>
+}

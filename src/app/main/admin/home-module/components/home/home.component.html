@@ -1,0 +1,25 @@
+<section class="mx-auto max-w-3xl p-8">
+  <app-page-header heading="Accueil" subheading="Espace administrateur" />
+
+  <div class="rounded-lg bg-white p-6 shadow-sm">
+    <p class="text-sm text-slate-600">
+      Connecté en tant que
+      <span class="font-medium text-slate-900">{{ email() ?? 'utilisateur inconnu' }}</span>
+    </p>
+
+    <p class="mt-4 text-sm text-slate-500">
+      Squelette de Phase 0. Le module <code>quote-request-module</code> et le modèle canonique
+      seront créés en Phase 1.
+    </p>
+
+    <button
+      mat-stroked-button
+      class="mt-6"
+      type="button"
+      [disabled]="isLoading()"
+      (click)="signout.emit()"
+    >
+      Se déconnecter
+    </button>
+  </div>
+</section>

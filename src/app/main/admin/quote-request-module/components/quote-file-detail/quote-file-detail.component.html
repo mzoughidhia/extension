@@ -1,0 +1,21 @@
+<div class="detail-header">
+  <h1>Dossier {{ vehicleLabel() }} — {{ clientLabel() }}</h1>
+
+  <div class="progress-row">
+    <span class="progress-label">Progression du dossier — {{ completeness() }} %</span>
+    <div class="progress-bar">
+      <div class="progress-bar-fill" [style.width.%]="completeness()"></div>
+    </div>
+  </div>
+</div>
+
+@if (knownClientFields().length > 0) {
+  <div class="client-summary">
+    <h2>Informations du client</h2>
+    <ul>
+      @for (row of knownClientFields(); track row.label) {
+        <li>✓ {{ row.label }} — {{ row.value }}</li>
+      }
+    </ul>
+  </div>
+}

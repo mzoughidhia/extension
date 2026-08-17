@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoFill Courtier</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <span class="header-icon">⚡</span>
+      <div>
+        <h3>AutoFill Courtier</h3>
+        <p class="subtitle">Agent d'automatisation</p>
+      </div>
+    </div>
+
+    <div class="popup-body">
+      <div id="active-client-box" class="client-box">
+        <span class="label">Dossier en cours :</span>
+        <strong id="popup-client-name">Chargement...</strong>
+      </div>
+
+      <div class="popup-actions">
+        <button id="btn-quick-fill" class="btn btn-primary">
+          <span>⚡</span> Remplir cette page
+        </button>
+        <button id="btn-open-sidepanel" class="btn btn-secondary">
+          <span>🔍</span> Ouvrir le panneau de contrôle
+        </button>
+      </div>
+
+      <div id="popup-status" class="popup-status hidden"></div>
+    </div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

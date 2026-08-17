@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APRIL ON — Tarificateur Moto Extranet (Simulation)</title>
+  <style>
+    :root {
+      --april-orange: #f29120;
+      --april-orange-dark: #d97706;
+      --april-bg: #fff8f5;
+      --april-surface: #ffffff;
+      --april-text: #231a12;
+      --april-border: #e2e8f0;
+    }
+    body {
+      font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--april-bg);
+      color: var(--april-text);
+      padding: 24px;
+      margin: 0;
+    }
+    .extranet-container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: var(--april-surface);
+      border: 1px solid var(--april-border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(242, 145, 32, 0.1);
+      padding: 32px;
+    }
+    .header-banner {
+      border-bottom: 3px solid var(--april-orange);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .company-logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--april-orange);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-env {
+      background: #fff1e8;
+      color: var(--april-orange-dark);
+      border: 1px solid #fed7aa;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .form-section {
+      background: #fafaf9;
+      border: 1px solid var(--april-border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .form-section h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      color: #1e293b;
+      font-size: 15px;
+      font-weight: 700;
+      border-bottom: 2px solid #fdba74;
+      padding-bottom: 6px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--april-orange);
+      box-shadow: 0 0 0 3px rgba(242, 145, 32, 0.2);
+    }
+    .mat-form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .mat-form-field mat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .conditional-box {
+      background: #fff7ed;
+      border: 1px solid #ffedd5;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+    .submit-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    .btn-submit {
+      background: var(--april-orange);
+      color: #ffffff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover {
+      background: var(--april-orange-dark);
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="extranet-container">
+    <div class="header-banner">
+      <div class="company-logo">
+        <span>🏍️</span> APRIL ON — Parcours Devis Moto Particulier
+      </div>
+      <span class="badge-env">Extranet Courtier</span>
+    </div>
+
+    <form id="april-moto-form" onsubmit="event.preventDefault(); alert('Devis APRIL Moto calculé avec succès !');">
+      
+      <!-- 1. Le 2-Roues (Moto) -->
+      <div class="form-section">
+        <h3>1. Le Véhicule (Moto / 2-Roues)</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="moto_immat">Immatriculation du 2-roues *</label>
+            <input type="text" id="moto_immat" name="license_plate" placeholder="123 TN 4567" required>
+          </div>
+
+          <div class="form-group">
+            <label for="moto_brand">Marque du constructeur *</label>
+            <select id="moto_brand" name="car_brand" required>
+              <option value="">-- Sélectionner une marque --</option>
+              <option value="Yamaha">Yamaha</option>
+              <option value="Honda">Honda</option>
+              <option value="Kawasaki">Kawasaki</option>
+              <option value="BMW">BMW</option>
+              <option value="Ducati">Ducati</option>
+              <option value="Triumph">Triumph</option>
+              <option value="Suzuki">Suzuki</option>
+              <option value="KTM">KTM</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="moto_model">Modèle de la moto</label>
+            <input type="text" id="moto_model" name="vehicle_model" placeholder="Ex: MT-07">
+          </div>
+
+          <div class="form-group">
+            <label for="moto_reg_date">Date de 1ère mise en circulation</label>
+            <input type="date" id="moto_reg_date" name="first_registration_date">
+          </div>
+
+          <div class="form-group">
+            <label for="moto_purchase_date">Date d'achat du véhicule</label>
+            <input type="date" id="moto_purchase_date" name="purchase_date">
+          </div>
+
+          <div class="form-group">
+            <label for="moto_cv">Puissance fiscale (CV)</label>
+            <input type="number" id="moto_cv" name="fiscal_power" min="1" max="30" placeholder="7">
+          </div>
+
+          <!-- Mode de stationnement (Information absente par défaut dans le dossier pour tester la question interactive) -->
+          <div class="form-group full-width">
+            <label for="moto_parking">Mode de stationnement habituel</label>
+            <select id="moto_parking" name="parking_type">
+              <option value="">-- Choisir le lieu de stationnement --</option>
+              <option value="GARAGE_CLOS">Garage individuel fermé</option>
+              <option value="PARKING_COLLECTIF">Parking collectif fermé</option>
+              <option value="VOIE_PUBLIQUE">Voie publique / Rue</option>
+              <option value="JARDIN_CLOS">Jardin ou cour clôturée</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Usage du 2-roues</label>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="vehicle_usage" value="PRIVATE"> Privé / Trajet travail
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="vehicle_usage" value="COMMUTE"> Professionnel (Tournées/Visites)
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="vehicle_usage" value="LEISURE"> Promenade / Loisirs uniquement
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Le Conducteur Principal -->
+      <div class="form-section">
+        <h3>2. Le Conducteur Principal</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="driver_first_name">Prénom du conducteur *</label>
+            <input type="text" id="driver_first_name" name="firstname" placeholder="Ex: Mohamed" required>
+          </div>
+
+          <div class="form-group">
+            <label for="driver_last_name">Nom de famille *</label>
+            <input type="text" id="driver_last_name" name="lastname" placeholder="Ex: Mzoughi" required>
+          </div>
+
+          <div class="form-group">
+            <label for="driver_dob">Date de naissance</label>
+            <input type="date" id="driver_dob" name="birth_date">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_license_type">Catégorie de permis moto</label>
+            <select id="driver_license_type" name="license_type">
+              <option value="">-- Sélectionner la catégorie --</option>
+              <option value="A">Permis A (Toutes cylindrées)</option>
+              <option value="A2">Permis A2 (Puissance limitée)</option>
+              <option value="A1">Permis A1 (125cc)</option>
+              <option value="B_125">Permis B avec formation 7h</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="driver_license_date">Date d'obtention du permis moto</label>
+            <input type="date" id="driver_license_date" name="driver_license_date">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_profession">Profession de l'assuré</label>
+            <input type="text" id="driver_profession" name="profession" placeholder="Ingénieur">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_phone">Téléphone mobile</label>
+            <input type="tel" id="driver_phone" name="phone_number" placeholder="+216...">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_email">Adresse email</label>
+            <input type="email" id="driver_email" name="email" placeholder="client@exemple.com">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="driver_address">Adresse postale</label>
+            <input type="text" id="driver_address" name="street_address" placeholder="15 Avenue Habib Bourguiba">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_zip">Code postal</label>
+            <input type="text" id="driver_zip" name="postal_code" placeholder="1000">
+          </div>
+
+          <div class="form-group">
+            <label for="driver_city">Ville de résidence</label>
+            <input type="text" id="driver_city" name="city" placeholder="Tunis">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Antécédents & Sinistralité (Champs conditionnels) -->
+      <div class="form-section">
+        <h3>3. Antécédents & Sinistres (36 derniers mois)</h3>
+        
+        <div class="form-group full-width">
+          <label>Avez-vous été assuré au cours des 36 derniers mois ?</label>
+          <div class="radio-group">
+            <label class="radio-item">
+              <input type="radio" name="has_insurance_history" value="OUI" onchange="toggleInsuranceHistory(true)" checked> Oui
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="has_insurance_history" value="NON" onchange="toggleInsuranceHistory(false)"> Non (Jamais assuré / Interruption > 3 ans)
+            </label>
+          </div>
+        </div>
+
+        <!-- Bloc conditionnel si OUI -->
+        <div id="insurance-history-fields" class="conditional-box">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="history_prev_insurer">Compagnie d'assurance actuelle / précédente</label>
+              <input type="text" id="history_prev_insurer" name="previous_insurer" placeholder="STAR, COMAR, AXA...">
+            </div>
+
+            <div class="form-group">
+              <label for="history_bonus">Coefficient Bonus/Malus (ex: 0.80)</label>
+              <input type="number" step="0.01" id="history_bonus" name="bonus_malus" placeholder="0.80">
+            </div>
+
+            <div class="form-group">
+              <label for="history_claims">Nombre total de sinistres (0 si aucun)</label>
+              <input type="number" id="history_claims" name="total_claims" min="0" placeholder="0">
+            </div>
+
+            <div class="form-group">
+              <label for="history_resp_claims">Dont sinistres responsables</label>
+              <input type="number" id="history_resp_claims" name="responsible_claims" min="0" placeholder="0">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="history_non_resp">Nombre de sinistres non responsables (Inconnu dans le dossier)</label>
+              <input type="number" id="history_non_resp" name="non_responsible_claims" min="0" placeholder="Ne doit PAS être rempli">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="submit-bar">
+        <button type="submit" class="btn-submit">Calculer le Tarif APRIL Moto</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function toggleInsuranceHistory(show) {
+      const el = document.getElementById('insurance-history-fields');
+      if (el) {
+        if (show) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

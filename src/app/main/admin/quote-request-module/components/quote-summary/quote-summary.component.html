@@ -1,0 +1,215 @@
+<div class="summary-wrapper">
+
+  <!-- ─── Client ─── -->
+  <div class="summary-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-icon">👤</span>
+        <h3>Client</h3>
+      </div>
+      <button mat-icon-button (click)="onEditStep(0)" id="summary-edit-client"
+              matTooltip="Modifier les informations client">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <mat-divider />
+    <div class="card-body">
+      <div class="info-row">
+        <span class="label">Nom complet</span>
+        <span class="value">{{ quote().client.firstName || '—' }} {{ quote().client.lastName || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">CIN / Identifiant</span>
+        <span class="value">{{ quote().client.nationalId || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Date de naissance</span>
+        <span class="value">{{ formatDate(quote().client.birthDate) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ quote().client.phone || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">E-mail</span>
+        <span class="value">{{ quote().client.email || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Adresse</span>
+        <span class="value">
+          {{ quote().client.address || '' }}
+          {{ quote().client.postalCode ? quote().client.postalCode + ' ' : '' }}
+          {{ quote().client.city || '' }}
+          {{ quote().client.country ? '(' + quote().client.country + ')' : '' }}
+          @if (!quote().client.address && !quote().client.city) { — }
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Véhicule ─── -->
+  <div class="summary-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-icon">🚗</span>
+        <h3>Véhicule</h3>
+      </div>
+      <button mat-icon-button (click)="onEditStep(1)" id="summary-edit-vehicle"
+              matTooltip="Modifier les informations véhicule">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <mat-divider />
+    <div class="card-body">
+      <div class="info-row">
+        <span class="label">Immatriculation</span>
+        <span class="value">{{ quote().vehicle.registration || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Marque / Modèle</span>
+        <span class="value">{{ quote().vehicle.brand || '—' }} {{ quote().vehicle.model || '' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Version</span>
+        <span class="value">{{ quote().vehicle.version || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">1ère mise en circulation</span>
+        <span class="value">{{ formatDate(quote().vehicle.firstRegistrationDate) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Puissance fiscale</span>
+        <span class="value">{{ quote().vehicle.fiscalPower ? quote().vehicle.fiscalPower + ' CV' : '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Valeur</span>
+        <span class="value">{{ quote().vehicle.vehicleValue ? (quote().vehicle.vehicleValue | number) + ' €' : '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Type</span>
+        <span class="value">{{ quote().vehicle.vehicleType || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Usage</span>
+        <span class="value">
+          {{ quote().vehicle.usage ? vehicleUsageLabels[quote().vehicle.usage!] : '—' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Conducteur ─── -->
+  <div class="summary-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-icon">🧑‍💼</span>
+        <h3>Conducteur</h3>
+      </div>
+      <button mat-icon-button (click)="onEditStep(2)" id="summary-edit-driver"
+              matTooltip="Modifier les informations conducteur">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <mat-divider />
+    <div class="card-body">
+      @if (quote().driver.sameAsClient) {
+        <div class="same-as-client-badge">
+          <mat-icon>person</mat-icon>
+          Le conducteur principal est le client
+        </div>
+      }
+      <div class="info-row">
+        <span class="label">Nom complet</span>
+        <span class="value">{{ quote().driver.firstName || '—' }} {{ quote().driver.lastName || '' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Date de naissance</span>
+        <span class="value">{{ formatDate(quote().driver.birthDate) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Date du permis</span>
+        <span class="value">{{ formatDate(quote().driver.licenseDate) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Profession</span>
+        <span class="value">{{ quote().driver.profession || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ quote().driver.phone || '—' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Historique ─── -->
+  <div class="summary-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span class="card-icon">📊</span>
+        <h3>Historique d'assurance</h3>
+      </div>
+      <button mat-icon-button (click)="onEditStep(3)" id="summary-edit-history"
+              matTooltip="Modifier l'historique d'assurance">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+    <mat-divider />
+    <div class="card-body">
+      <div class="info-row">
+        <span class="label">Compagnie précédente</span>
+        <span class="value">{{ quote().insuranceHistory.previousInsurer || '—' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Période du contrat</span>
+        <span class="value">
+          {{ formatDate(quote().insuranceHistory.previousContractStartDate) }}
+          @if (quote().insuranceHistory.previousContractStartDate) { → }
+          {{ formatDate(quote().insuranceHistory.previousContractEndDate) }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Ancienneté</span>
+        <span class="value">{{ formatKnowledge(quote().insuranceHistory.seniority, ' an(s)') }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Bonus / Malus</span>
+        <span class="value">{{ formatKnowledge(quote().insuranceHistory.bonusMalus) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Sinistres (total)</span>
+        <span class="value">{{ formatKnowledge(quote().insuranceHistory.claimsCount) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Dont responsables</span>
+        <span class="value">{{ formatKnowledge(quote().insuranceHistory.responsibleClaimsCount) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Dont non responsables</span>
+        <span class="value">{{ formatKnowledge(quote().insuranceHistory.nonResponsibleClaimsCount) }}</span>
+      </div>
+      @if (quote().insuranceHistory.wasTerminated) {
+        <div class="termination-badge">
+          <mat-icon>warning</mat-icon>
+          Contrat résilié
+          @if (quote().insuranceHistory.terminatedByInsurer) { par la compagnie }
+          @if (quote().insuranceHistory.terminationReason) {
+            — {{ quote().insuranceHistory.terminationReason }}
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── Actions finales ─── -->
+<div class="final-actions">
+  <button mat-stroked-button (click)="onPrev()" id="summary-prev">
+    <mat-icon>arrow_back</mat-icon>
+    Précédent
+  </button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" id="summary-submit">
+    <mat-icon>check_circle</mat-icon>
+    Créer la demande
+  </button>
+</div>

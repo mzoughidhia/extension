@@ -1,0 +1,44 @@
+@if (isLoading()) {
+  <p class="state-message">Chargement de vos devis...</p>
+} @else if (files().length === 0) {
+  <div class="empty-state">
+    <span class="empty-icon">📄</span>
+    <p>Aucun devis pour le moment.</p>
+    <p class="empty-hint">Créez une nouvelle demande pour commencer un dossier.</p>
+  </div>
+} @else {
+  <div class="file-list">
+    @for (file of files(); track file.id) {
+      <div class="file-card">
+        <div class="file-card-main">
+          <div class="file-card-title">
+            <span class="file-icon">👤</span>
+            <div>
+              <h3>{{ clientLabel(file) }}</h3>
+              <p class="vehicle">{{ vehicleLabel(file) }}</p>
+            </div>
+          </div>
+
+          <mat-chip-set>
+            <mat-chip [class.chip-submitted]="file.status === 'submitted'">
+              {{ statusLabel(file) }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <p class="last-activity">{{ lastActivityLabel(file) }}</p>
+
+        <div class="file-card-actions">
+          <a mat-stroked-button [routerLink]="['/admin/mes-devis', file.id]">
+            <mat-icon>folder_open</mat-icon>
+            Ouvrir le dossier
+          </a>
+          <button mat-flat-button color="primary" (click)="onResume(file)">
+            <mat-icon>play_arrow</mat-icon>
+            Reprendre
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

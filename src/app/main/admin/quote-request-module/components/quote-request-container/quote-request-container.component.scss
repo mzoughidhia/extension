@@ -1,0 +1,38 @@
+.page-wrapper {
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mes-devis-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.main-card {
+  margin-top: 1.5rem;
+}
+
+mat-card-content {
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 1rem;
+  }
+
+  mat-card-content {
+    padding: 1rem;
+  }
+}

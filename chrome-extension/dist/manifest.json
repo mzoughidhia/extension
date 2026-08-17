@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "AutoFill Courtier — Agent Extranet Assurance",
+  "version": "1.0.0",
+  "description": "Agent intelligent de détection, mapping et remplissage automatique des formulaires extranets d'assurance",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background/service-worker.js",
+    "type": "module"
+  },
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:4200/*",
+      "https://localhost:4200/*"
+    ]
+  },
+  "action": {
+    "default_popup": "dist/popup/popup.html",
+    "default_title": "AutoFill Courtier"
+  },
+  "side_panel": {
+    "default_path": "dist/sidepanel/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/*", "test-extranet/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

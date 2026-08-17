@@ -1,0 +1,15 @@
+<div class="page-wrapper">
+
+  <app-page-header [heading]="heading" />
+
+  @if (loading()) {
+    <p class="loading-hint">Chargement...</p>
+  } @else {
+    <app-extranet-link-form
+      [initialValue]="existingLink()"
+      (save)="onSave($event)"
+      (formCancel)="onCancel()"
+    />
+  }
+
+</div>

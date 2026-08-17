@@ -1,0 +1,22 @@
+<div class="page-wrapper">
+
+  <!-- En-tête -->
+  <div class="header-row">
+    <app-page-header
+      heading="Nouvelle demande d'assurance automobile"
+      subheading="Renseignez les informations du dossier étape par étape"
+    />
+    <a mat-stroked-button routerLink="/admin/mes-devis" class="mes-devis-link">
+      <mat-icon>folder_open</mat-icon>
+      Mes devis
+    </a>
+  </div>
+
+  <!-- Carte principale -->
+  <mat-card class="main-card" appearance="outlined">
+    <mat-card-content>
+      <app-quote-request-stepper [quoteFileId]="quoteFileId()" />
+    </mat-card-content>
+  </mat-card>
+
+</div>

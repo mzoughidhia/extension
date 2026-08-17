@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Agent</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="logo-title">
+      <span class="logo-icon">🤖</span>
+      <h1>Form Agent</h1>
+    </div>
+    <div id="status-pill" class="status-pill">
+      <span id="status-dot" class="dot dot-ready"></span>
+      <span id="status-text">Prêt</span>
+    </div>
+  </header>
+
+  <main class="content-container">
+    <!-- Fil conversationnel : seul endroit où le courtier lit ce qui se passe -->
+    <section class="conversation-feed" id="conversation-feed" aria-live="polite">
+      <div class="chat-message assistant">
+        <div class="avatar">🤖</div>
+        <div class="bubble">
+          <p>Bonjour 👋</p>
+          <p>Je peux utiliser les informations du dossier client pour remplir ce formulaire.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Une seule action principale à la fois -->
+    <div class="action-dock">
+      <button id="btn-scan" class="btn-main primary">Analyser le formulaire</button>
+      <button id="btn-fill" class="btn-main primary hidden">
+        Remplir le formulaire (<span id="fill-count">0</span>)
+      </button>
+    </div>
+
+    <!-- Détail technique optionnel, replié par défaut -->
+    <details class="summary-accordion hidden" id="fields-summary-details">
+      <summary class="summary-toggle">
+        Voir les informations détectées (<span id="summary-total-count">0</span>)
+      </summary>
+      <div id="mappings-list" class="mappings-summary-list"></div>
+    </details>
+  </main>
+
+  <footer class="app-footer">
+    <details class="settings-accordion">
+      <summary class="settings-toggle">⚙️ Paramètres</summary>
+      <div class="settings-body">
+        <div class="settings-row">
+          <span class="settings-label">Intelligence</span>
+          <span id="intelligence-status" class="config-pill">Non activée</span>
+        </div>
+
+        <div class="settings-row settings-key-row hidden" id="gemini-key-row">
+          <input
+            type="password"
+            id="gemini-api-key-input"
+            class="input-key"
+            placeholder="Clé API Gemini"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="btn-save-gemini-key" class="btn-action primary">Enregistrer</button>
+        </div>
+
+        <div class="settings-actions">
+          <button id="btn-toggle-gemini-key" class="btn-link">Modifier</button>
+          <button id="btn-clear-gemini-key" class="btn-link danger hidden">Désactiver</button>
+        </div>
+
+        <p class="config-note">Aucune information n'est jamais inventée : tout est vérifié avant remplissage.</p>
+      </div>
+    </details>
+  </footer>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

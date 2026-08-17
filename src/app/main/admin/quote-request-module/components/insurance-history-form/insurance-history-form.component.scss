@@ -1,0 +1,104 @@
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-icon {
+  font-size: 1.1rem;
+}
+
+.section-divider {
+  margin: 1.5rem 0;
+}
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: #713f12;
+}
+
+.info-icon {
+  color: #ca8a04;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Chaque ligne "valeur + je ne sais pas" */
+.knowledge-field {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.knowledge-input {
+  flex: 1;
+}
+
+.fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 1rem;
+  margin-top: 1rem;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.checkbox-row {
+  margin-bottom: 1rem;
+}
+
+.termination-details {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .knowledge-field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .knowledge-input {
+    width: 100%;
+  }
+
+  .fields-grid {
+    grid-template-columns: 1fr;
+  }
+}

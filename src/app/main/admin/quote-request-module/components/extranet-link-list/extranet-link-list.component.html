@@ -1,0 +1,34 @@
+@if (links().length === 0) {
+  <div class="empty-state">
+    <span class="empty-icon">🔗</span>
+    <p>Aucun extranet enregistré pour le moment.</p>
+    <p class="empty-hint">Ajoutez le formulaire d'une compagnie pour commencer à préparer des devis.</p>
+  </div>
+} @else {
+  <div class="link-grid">
+    @for (link of links(); track link.id) {
+      <div class="link-card" [class.link-card-inactive]="!link.active">
+        <div class="link-card-header">
+          <h3>{{ link.company }}</h3>
+          <span class="status" [class.status-active]="link.active">{{ statusLabel(link) }}</span>
+        </div>
+        <p class="product">{{ link.product }}</p>
+        <p class="name">{{ link.name }}</p>
+
+        <div class="link-card-actions">
+          <a mat-stroked-button [href]="link.url" target="_blank" rel="noopener">
+            <mat-icon>open_in_new</mat-icon>
+            Ouvrir
+          </a>
+          <a mat-stroked-button [routerLink]="['/admin/mes-extranets', link.id]">
+            <mat-icon>edit</mat-icon>
+            Modifier
+          </a>
+          <button mat-button (click)="onToggleActive(link)">
+            {{ link.active ? 'Désactiver' : 'Activer' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

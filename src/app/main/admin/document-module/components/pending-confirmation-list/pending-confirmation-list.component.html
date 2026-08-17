@@ -1,0 +1,41 @@
+@if (confirmations().length > 0) {
+  <div class="confirmation-list">
+    @for (confirmation of confirmations(); track confirmation.id) {
+      <div class="confirmation-card">
+        @if (confirmation.currentIsKnown) {
+          <p class="confirmation-title">⚠ Une différence a été détectée</p>
+          <p class="confirmation-question">{{ confirmation.label }}</p>
+
+          <div class="confirmation-values">
+            <div class="value-box">
+              <span class="value-label">Dossier actuel</span>
+              <span class="value-content">{{ displayValue(confirmation.currentValue) }}</span>
+            </div>
+            <div class="value-box">
+              <span class="value-label">Document</span>
+              <span class="value-content">{{ displayValue(confirmation.ocrValue) }}</span>
+            </div>
+          </div>
+
+          <div class="confirmation-actions">
+            <button mat-stroked-button (click)="onKeepCurrent(confirmation)">
+              Conserver « {{ displayValue(confirmation.currentValue) }} »
+            </button>
+            <button mat-flat-button color="primary" (click)="onUseOcr(confirmation)">
+              Utiliser « {{ displayValue(confirmation.ocrValue) }} »
+            </button>
+          </div>
+        } @else {
+          <p class="confirmation-title">⚠ Information à confirmer</p>
+          <p class="confirmation-question">{{ confirmation.label }}</p>
+          <p class="value-content standalone">{{ displayValue(confirmation.ocrValue) }}</p>
+
+          <div class="confirmation-actions">
+            <button mat-stroked-button (click)="onKeepCurrent(confirmation)">Ignorer</button>
+            <button mat-flat-button color="primary" (click)="onUseOcr(confirmation)">Confirmer</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,18 @@
+{
+  "name": "insurance-autofill-extension",
+  "version": "1.0.0",
+  "description": "Extension Chrome Manifest V3 — Agent intelligent de remplissage automatique des extranets d'assurance",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node build.js && node --test tests/**/*.spec.js"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.308",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.3"
+  }
+}

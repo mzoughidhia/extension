@@ -1,0 +1,48 @@
+<div class="questionnaire-card">
+  <p class="intro">
+    @if (question().source === 'needs_confirmation') {
+      Une information mérite d'être confirmée.
+    } @else {
+      Votre dossier est presque prêt. Il me manque une information.
+    }
+  </p>
+
+  <p class="question-label">{{ question().label }}</p>
+
+  @switch (question().type) {
+    @case ('choice') {
+      <div class="choices">
+        @for (choice of question().choices; track choice.value) {
+          <button mat-stroked-button class="choice-btn" (click)="onChoice(choice.value)">
+            {{ choice.label }}
+          </button>
+        }
+      </div>
+    }
+    @case ('boolean') {
+      <div class="choices">
+        <button mat-stroked-button class="choice-btn" (click)="onBoolean(true)">Oui</button>
+        <button mat-stroked-button class="choice-btn" (click)="onBoolean(false)">Non</button>
+      </div>
+    }
+    @default {
+      <div class="text-answer-row">
+        <input
+          [type]="question().type === 'number' ? 'number' : question().type === 'date' ? 'date' : 'text'"
+          class="text-input"
+          [(ngModel)]="textValue"
+          (keydown.enter)="submitTextValue()"
+        />
+        <button mat-flat-button color="primary" (click)="submitTextValue()">Continuer</button>
+      </div>
+    }
+  }
+
+  <p class="remaining-count">
+    @if (remainingCount() > 1) {
+      {{ remainingCount() }} questions restantes
+    } @else {
+      Dernière question
+    }
+  </p>
+</div>

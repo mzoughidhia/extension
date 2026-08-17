@@ -1,0 +1,183 @@
+.page-wrapper {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.back-link:hover {
+  color: #2563eb;
+}
+
+.step-tracker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.step-done {
+  color: #166534;
+}
+
+.step-done .step-dot {
+  background: #16a34a;
+}
+
+.step-current {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.step-current .step-dot {
+  background: #2563eb;
+}
+
+.readiness-summary {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.questionnaire-partial {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.main-card mat-card-content {
+  padding: 1.5rem;
+}
+
+.section-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.documents-block {
+  margin-top: 1rem;
+}
+
+.history-accordion {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+}
+
+.history-accordion summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0.5rem 0;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.questionnaire-hint {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.questionnaire-complete {
+  margin: 0;
+  font-weight: 600;
+  color: #166534;
+}
+
+.questionnaire-error {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.company-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.company-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.company-row-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.company-status {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.fill-summary {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.loading-hint {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 1rem;
+  }
+}

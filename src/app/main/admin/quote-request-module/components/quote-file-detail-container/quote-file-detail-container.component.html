@@ -1,0 +1,171 @@
+<div class="page-wrapper">
+
+  <a routerLink="/admin/mes-devis" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    Mes devis
+  </a>
+
+  @if (quoteFile(); as file) {
+    <div class="step-tracker" role="list">
+      @for (step of steps(); track step.label) {
+        <div class="step" [class.step-done]="step.status === 'done'" [class.step-current]="step.status === 'current'" role="listitem">
+          <span class="step-dot"></span>
+          <span class="step-label">{{ step.label }}</span>
+        </div>
+      }
+    </div>
+
+    <mat-card class="main-card" appearance="outlined">
+      <mat-card-content>
+        <app-quote-file-detail [quoteFile]="file" />
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="main-card" appearance="outlined">
+      <mat-card-content>
+        <h2 class="section-title">Documents</h2>
+        <app-document-upload (addDocument)="onAddDocument($event)" />
+
+        <div class="documents-block">
+          <app-document-list [documents]="file.documents" (runOcr)="onRunOcr($event)" />
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    @if (file.pendingConfirmations.length > 0) {
+      <mat-card class="main-card" appearance="outlined">
+        <mat-card-content>
+          <h2 class="section-title">Informations à confirmer</h2>
+          <app-pending-confirmation-list
+            [confirmations]="file.pendingConfirmations"
+            (decide)="onConfirmationDecision($event)"
+          />
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card class="main-card" appearance="outlined">
+      <mat-card-content>
+        <h2 class="section-title">Compagnies</h2>
+
+        @if (extranetLinks().length === 0) {
+          <p class="questionnaire-hint">
+            Aucun extranet actif. <a routerLink="/admin/mes-extranets">Ajoutez-en un</a> pour préparer ce dossier chez une compagnie.
+          </p>
+        } @else {
+          <div class="company-list">
+            @for (link of extranetLinks(); track link.id) {
+              <div class="company-row" [class.company-row-selected]="selectedExtranetId() === link.id">
+                <div>
+                  <strong>{{ link.company }} {{ link.product }}</strong>
+                  <p class="company-status">{{ companyStatusLabel(link) }}</p>
+                </div>
+                <button mat-stroked-button (click)="onSelectCompany(link)">
+                  {{ companyStatus(link) === 'not_started' ? 'Préparer' : 'Voir' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    @if (selectedExtranet(); as link) {
+    <mat-card class="main-card" appearance="outlined">
+      <mat-card-content>
+        <h2 class="section-title">Préparer ce dossier chez {{ link.company }} {{ link.product }}</h2>
+
+        @if (formAgentState() === 'connecting') {
+          <p class="questionnaire-hint">Connexion à Form Agent…</p>
+        } @else if (formAgentState() === 'error') {
+          <p class="questionnaire-error">⚠ {{ formAgentErrorMessage() }}</p>
+          <button mat-stroked-button (click)="onStartQuestionnaire()">Réessayer</button>
+        } @else if (!activeQuestionnaire()) {
+          <p class="questionnaire-hint">
+            Je vais comparer votre dossier avec les informations demandées par la compagnie.
+          </p>
+          <button mat-flat-button color="primary" (click)="onStartQuestionnaire()">
+            Préparer le devis
+          </button>
+        } @else if (activeQuestionnaire()!.status === 'complete') {
+          @if (fillState() === 'connecting') {
+            <p class="questionnaire-hint">Connexion à Form Agent…</p>
+          } @else if (fillState() === 'error') {
+            <p class="questionnaire-error">⚠ {{ fillErrorMessage() }}</p>
+            <button mat-stroked-button (click)="onFillExtranet()">Réessayer</button>
+          } @else {
+            @if (lastFillResult(); as result) {
+              @if (result.status === 'ready') {
+                <p class="questionnaire-complete">✓ Formulaire rempli</p>
+                <p class="questionnaire-hint">Vérifiez le formulaire avant de continuer. Aucune soumission n'est faite automatiquement.</p>
+              } @else if (result.status === 'partially_filled') {
+                <p class="questionnaire-partial">◐ Formulaire partiellement rempli</p>
+                <p class="questionnaire-hint">Certains champs n'ont pas pu être remplis automatiquement — répondez aux questions ci-dessous puis réessayez.</p>
+              } @else {
+                <p class="questionnaire-error">⚠ Le remplissage nécessite votre intervention</p>
+              }
+              <p class="fill-summary">{{ result.filledFieldsCount }} information(s) remplie(s) automatiquement.</p>
+            } @else {
+              @if (readinessSummary(); as summary) {
+                <p class="questionnaire-complete">✓ Votre dossier est prêt</p>
+                <ul class="readiness-summary">
+                  <li>Informations extraites des documents : {{ summary.extractedFromDocuments }}</li>
+                  <li>Champs requis par cette compagnie : {{ summary.requiredCount }}</li>
+                  <li>Champs déjà connus ou renseignés : {{ summary.knownCount }}</li>
+                  <li>Champs manquants : {{ summary.missingCount }}</li>
+                </ul>
+                <button mat-flat-button color="primary" (click)="onFillExtranet()">
+                  Remplir le formulaire
+                </button>
+              }
+            }
+          }
+        } @else {
+          @if (currentQuestion(); as question) {
+            <app-questionnaire
+              [question]="question"
+              [remainingCount]="missingQuestions().length"
+              (answer)="onAnswerQuestion($event)"
+            />
+          } @else {
+            <p class="questionnaire-hint">Formulaire reconnu — préparation du questionnaire…</p>
+          }
+        }
+      </mat-card-content>
+    </mat-card>
+    }
+
+    @if (companiesWithResults().length > 0) {
+      <mat-card class="main-card" appearance="outlined">
+        <mat-card-content>
+          <h2 class="section-title">Résultats — Compagnies utilisées</h2>
+          <div class="company-list">
+            @for (link of companiesWithResults(); track link.id) {
+              <div class="company-row">
+                <div>
+                  <strong>{{ link.company }} {{ link.product }}</strong>
+                  <p class="company-status">{{ companyStatusLabel(link) }} — Résultat enregistré</p>
+                </div>
+                <button mat-stroked-button (click)="onSelectCompany(link)">Voir</button>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (file.history.length > 0) {
+      <details class="history-accordion">
+        <summary>Historique du dossier ({{ file.history.length }})</summary>
+        <ul class="history-list">
+          @for (event of file.history; track $index) {
+            <li>{{ event.label }}</li>
+          }
+        </ul>
+      </details>
+    }
+  } @else {
+    <p class="loading-hint">Chargement du dossier...</p>
+  }
+
+</div>

@@ -1,0 +1,128 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+  <!-- ─── Identité ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">👤</span>
+      Identité
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Prénom *</mat-label>
+        <input matInput formControlName="firstName" placeholder="Ex : Mohamed" id="client-firstName" />
+        @if (getError('firstName', 'required')) {
+          <mat-error>Le prénom est obligatoire.</mat-error>
+        }
+        @if (getError('firstName', 'minlength')) {
+          <mat-error>Minimum 2 caractères.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nom *</mat-label>
+        <input matInput formControlName="lastName" placeholder="Ex : Dupont" id="client-lastName" />
+        @if (getError('lastName', 'required')) {
+          <mat-error>Le nom est obligatoire.</mat-error>
+        }
+        @if (getError('lastName', 'minlength')) {
+          <mat-error>Minimum 2 caractères.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>CIN / Identifiant national</mat-label>
+        <input matInput formControlName="nationalId" placeholder="Ex : AB123456" id="client-nationalId" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date de naissance</mat-label>
+        <input
+          matInput
+          [matDatepicker]="birthDatePicker"
+          formControlName="birthDate"
+          placeholder="JJ/MM/AAAA"
+          id="client-birthDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker" />
+        <mat-datepicker #birthDatePicker />
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Coordonnées ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">📞</span>
+      Coordonnées
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Téléphone</mat-label>
+        <input matInput formControlName="phone" placeholder="+33 6 12 34 56 78" id="client-phone" />
+        <mat-icon matSuffix>phone</mat-icon>
+        @if (getError('phone', 'pattern')) {
+          <mat-error>Format de téléphone invalide.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Adresse e-mail</mat-label>
+        <input matInput formControlName="email" type="email" placeholder="exemple@domaine.fr" id="client-email" />
+        <mat-icon matSuffix>email</mat-icon>
+        @if (getError('email', 'email')) {
+          <mat-error>Adresse e-mail invalide.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Adresse ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">📍</span>
+      Adresse
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline" class="field-span-2">
+        <mat-label>Adresse</mat-label>
+        <input matInput formControlName="address" placeholder="12 rue de la Paix" id="client-address" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Code postal</mat-label>
+        <input matInput formControlName="postalCode" placeholder="75001" id="client-postalCode" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Ville</mat-label>
+        <input matInput formControlName="city" placeholder="Paris" id="client-city" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Pays</mat-label>
+        <input matInput formControlName="country" placeholder="France" id="client-country" />
+      </mat-form-field>
+    </div>
+  </section>
+
+  <!-- ─── Actions ─── -->
+  <div class="step-actions">
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      id="client-form-next"
+    >
+      Suivant
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </div>
+
+</form>

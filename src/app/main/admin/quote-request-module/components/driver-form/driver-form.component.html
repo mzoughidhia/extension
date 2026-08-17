@@ -1,0 +1,95 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+  <!-- ─── Option : conducteur = client ─── -->
+  <section class="form-section same-as-client-section">
+    <mat-checkbox formControlName="sameAsClient" color="primary" id="driver-sameAsClient">
+      <span class="checkbox-label">Le conducteur principal est le client</span>
+    </mat-checkbox>
+    @if (form.get('sameAsClient')?.value) {
+      <p class="hint-text">
+        ℹ️ Les informations communes (prénom, nom, date de naissance, téléphone) ont été reprises depuis la fiche client.
+      </p>
+    }
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Identité ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">🧑‍💼</span>
+      Conducteur principal
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Prénom</mat-label>
+        <input matInput formControlName="firstName" id="driver-firstName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nom</mat-label>
+        <input matInput formControlName="lastName" id="driver-lastName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date de naissance</mat-label>
+        <input
+          matInput
+          [matDatepicker]="birthDatePicker"
+          formControlName="birthDate"
+          placeholder="JJ/MM/AAAA"
+          id="driver-birthDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="birthDatePicker" />
+        <mat-datepicker #birthDatePicker />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date d'obtention du permis</mat-label>
+        <input
+          matInput
+          [matDatepicker]="licenseDatePicker"
+          formControlName="licenseDate"
+          placeholder="JJ/MM/AAAA"
+          id="driver-licenseDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="licenseDatePicker" />
+        <mat-datepicker #licenseDatePicker />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Profession</mat-label>
+        <input matInput formControlName="profession" placeholder="Ex : Médecin" id="driver-profession" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Téléphone</mat-label>
+        <input matInput formControlName="phone" id="driver-phone" />
+        <mat-icon matSuffix>phone</mat-icon>
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Conducteur principal ─── -->
+  <section class="form-section">
+    <mat-checkbox formControlName="isPrimaryDriver" color="primary" id="driver-isPrimaryDriver">
+      Ce conducteur est le conducteur principal du véhicule
+    </mat-checkbox>
+  </section>
+
+  <!-- ─── Actions ─── -->
+  <div class="step-actions">
+    <button mat-stroked-button type="button" (click)="onPrev()" id="driver-form-prev">
+      <mat-icon>arrow_back</mat-icon>
+      Précédent
+    </button>
+    <button mat-flat-button color="primary" type="submit" id="driver-form-next">
+      Suivant
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </div>
+
+</form>

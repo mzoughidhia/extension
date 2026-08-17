@@ -1,0 +1,110 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+  <!-- ─── Identification du véhicule ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">🚗</span>
+      Identification du véhicule
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Immatriculation</mat-label>
+        <input matInput formControlName="registration" placeholder="AB-123-CD" id="vehicle-registration" />
+        <mat-icon matSuffix>directions_car</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Marque</mat-label>
+        <input matInput formControlName="brand" placeholder="Ex : Renault" id="vehicle-brand" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Modèle</mat-label>
+        <input matInput formControlName="model" placeholder="Ex : Clio" id="vehicle-model" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Version / Finition</mat-label>
+        <input matInput formControlName="version" placeholder="Ex : Intens 1.0 TCe 100" id="vehicle-version" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date de première mise en circulation</mat-label>
+        <input
+          matInput
+          [matDatepicker]="firstRegDatePicker"
+          formControlName="firstRegistrationDate"
+          placeholder="JJ/MM/AAAA"
+          id="vehicle-firstRegistrationDate"
+        />
+        <mat-datepicker-toggle matIconSuffix [for]="firstRegDatePicker" />
+        <mat-datepicker #firstRegDatePicker />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Puissance fiscale (CV)</mat-label>
+        <input matInput type="number" formControlName="fiscalPower" placeholder="Ex : 6" id="vehicle-fiscalPower" min="1" max="99" />
+        <mat-hint>Entre 1 et 99 CV</mat-hint>
+        @if (getError('fiscalPower', 'min')) {
+          <mat-error>Valeur minimale : 1 CV.</mat-error>
+        }
+        @if (getError('fiscalPower', 'max')) {
+          <mat-error>Valeur maximale : 99 CV.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </section>
+
+  <mat-divider class="section-divider" />
+
+  <!-- ─── Usage et valeur ─── -->
+  <section class="form-section">
+    <h3 class="section-title">
+      <span class="section-icon">📋</span>
+      Usage et valeur
+    </h3>
+
+    <div class="fields-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Type de véhicule</mat-label>
+        <mat-select formControlName="vehicleType" id="vehicle-vehicleType">
+          @for (type of vehicleTypes; track type) {
+            <mat-option [value]="type">{{ type }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Usage du véhicule</mat-label>
+        <mat-select formControlName="usage" id="vehicle-usage">
+          @for (usage of vehicleUsageValues; track usage) {
+            <mat-option [value]="usage">{{ vehicleUsageLabels[usage] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Valeur du véhicule</mat-label>
+        <input matInput type="number" formControlName="vehicleValue" placeholder="Ex : 15000" id="vehicle-vehicleValue" min="0" />
+        <span matTextSuffix>€</span>
+        @if (getError('vehicleValue', 'min')) {
+          <mat-error>La valeur doit être positive.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </section>
+
+  <!-- ─── Actions ─── -->
+  <div class="step-actions">
+    <button mat-stroked-button type="button" (click)="onPrev()" id="vehicle-form-prev">
+      <mat-icon>arrow_back</mat-icon>
+      Précédent
+    </button>
+    <button mat-flat-button color="primary" type="submit" id="vehicle-form-next">
+      Suivant
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </div>
+
+</form>

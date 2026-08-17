@@ -1,0 +1,62 @@
+<mat-stepper
+  #stepper
+  [selectedIndex]="selectedIndex()"
+  [linear]="false"
+  labelPosition="bottom"
+  class="quote-stepper"
+  id="quote-request-stepper"
+>
+
+  <!-- ① Client -->
+  <mat-step label="Client" id="step-client">
+    <div class="step-content">
+      <app-client-form
+        (formSubmit)="onClientSubmit($event)"
+      />
+    </div>
+  </mat-step>
+
+  <!-- ② Véhicule -->
+  <mat-step label="Véhicule" id="step-vehicle">
+    <div class="step-content">
+      <app-vehicle-form
+        (formSubmit)="onVehicleSubmit($event)"
+        (prevStep)="onVehiclePrev()"
+      />
+    </div>
+  </mat-step>
+
+  <!-- ③ Conducteur -->
+  <mat-step label="Conducteur" id="step-driver">
+    <div class="step-content">
+      <app-driver-form
+        [client]="store.draft().client"
+        (formSubmit)="onDriverSubmit($event)"
+        (prevStep)="onDriverPrev()"
+      />
+    </div>
+  </mat-step>
+
+  <!-- ④ Historique -->
+  <mat-step label="Historique d'assurance" id="step-history">
+    <div class="step-content">
+      <app-insurance-history-form
+        (formSubmit)="onHistorySubmit($event)"
+        (prevStep)="onHistoryPrev()"
+      />
+    </div>
+  </mat-step>
+
+  <!-- ⑤ Récapitulatif -->
+  <mat-step label="Récapitulatif" id="step-summary">
+    <div class="step-content">
+      <app-quote-summary
+        [quote]="store.draft()"
+        (editStep)="onEditStep($event)"
+        (prevStep)="onSummaryPrev()"
+        (submitQuote)="onSubmit()"
+      />
+    </div>
+  </mat-step>
+
+</mat-stepper>

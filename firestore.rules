@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// Règles Firestore — Phase 1.
+//
+// Posture générale : deny-by-default (voir le match générique en fin de fichier).
+// Les collections métier sont ouvertes une par une, avec un contrôle explicite
+// d'appartenance (`ownerUid`) : un courtier ne lit et n'écrit que ses propres
+// dossiers.
+//
+// `quoteFiles` : dossiers de devis (voir QuoteFileModel côté application).
+// `extranetLinks` : registre "Mes extranets" (voir ExtranetLinkModel).
+// Aucune des deux ne contient jamais d'identifiants extranet, de mot de passe,
+// de cookie ni de token — conformément à ADR-008.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /quoteFiles/{quoteFileId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.ownerUid;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.ownerUid;
+
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.ownerUid
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      allow delete: if false;
+    }
+
+    match /extranetLinks/{extranetLinkId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.ownerUid;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.ownerUid;
+
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.ownerUid
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.ownerUid;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

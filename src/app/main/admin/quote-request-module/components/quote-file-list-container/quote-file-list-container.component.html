@@ -1,0 +1,13 @@
+<div class="page-wrapper">
+
+  <div class="header-row">
+    <app-page-header heading="Mes devis" subheading="Retrouvez et reprenez vos dossiers en cours" />
+    <button mat-flat-button color="primary" (click)="onNewQuote()">
+      <mat-icon>add</mat-icon>
+      Nouvelle demande
+    </button>
+  </div>
+
+  <app-quote-file-list [files]="files()" (resumeFile)="onResume($event)" />
+
+</div>

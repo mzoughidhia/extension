@@ -1,0 +1,60 @@
+.questionnaire-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.intro {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.question-label {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.choice-btn {
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+.text-answer-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.text-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.remaining-count {
+  margin: 0.5rem 0 0;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}

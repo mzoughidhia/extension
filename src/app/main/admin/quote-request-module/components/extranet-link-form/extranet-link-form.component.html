@@ -1,0 +1,52 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+  <div class="fields-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Compagnie</mat-label>
+      <input matInput formControlName="company" placeholder="Ex : April" id="extranet-link-company" />
+      @if (getError('company', 'required')) {
+        <mat-error>La compagnie est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Produit</mat-label>
+      <input matInput formControlName="product" placeholder="Ex : Moto" id="extranet-link-product" />
+      @if (getError('product', 'required')) {
+        <mat-error>Le produit est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Nom du formulaire</mat-label>
+      <input matInput formControlName="name" placeholder="Ex : Devis Moto" id="extranet-link-name" />
+      @if (getError('name', 'required')) {
+        <mat-error>Le nom est obligatoire.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>URL</mat-label>
+      <input matInput formControlName="url" placeholder="https://..." id="extranet-link-url" />
+      @if (getError('url', 'required')) {
+        <mat-error>L'URL est obligatoire.</mat-error>
+      }
+      @if (getError('url', 'pattern')) {
+        <mat-error>L'URL doit être valide (commencer par http:// ou https://).</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="2" id="extranet-link-description"></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="active" id="extranet-link-active">Actif</mat-checkbox>
+  </div>
+
+  <div class="form-actions">
+    <button mat-stroked-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-flat-button color="primary" type="submit">Enregistrer</button>
+  </div>
+
+</form>

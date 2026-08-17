@@ -1,0 +1,29 @@
+@if (!isOpen()) {
+  <button mat-stroked-button color="primary" class="add-btn" (click)="open()">
+    <mat-icon>add</mat-icon>
+    Ajouter un document
+  </button>
+} @else {
+  <div class="upload-panel">
+    <div class="upload-row">
+      <mat-select [(ngModel)]="selectedType" class="type-select">
+        @for (type of documentTypes; track type) {
+          <mat-option [value]="type">{{ documentTypeLabels[type] }}</mat-option>
+        }
+      </mat-select>
+
+      <button mat-stroked-button type="button" (click)="triggerFilePicker()">
+        <mat-icon>attach_file</mat-icon>
+        {{ selectedFileName() || 'Choisir un fichier' }}
+      </button>
+      <input #fileInput type="file" hidden accept="image/*,.pdf" (change)="onFileSelected($event)" />
+    </div>
+
+    <div class="upload-actions">
+      <button mat-button type="button" (click)="cancel()">Annuler</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="!selectedFileName()" (click)="submit()">
+        Ajouter le document
+      </button>
+    </div>
+  </div>
+}
