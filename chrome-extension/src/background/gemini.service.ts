@@ -1,5 +1,8 @@
-import { CANONICAL_PATHS, isValidCanonicalPath } from '../models/canonical-paths';
+import { CanonicalPath, CANONICAL_PATHS, isValidCanonicalPath } from '../models/canonical-paths';
 import {
+  GeminiDocumentExtractedField,
+  GeminiDocumentExtractionRequest,
+  GeminiDocumentExtractionResponse,
   GeminiFieldMapping,
   GeminiMappingRequest,
   GeminiMappingResponse,
@@ -171,16 +174,7 @@ export class GeminiService {
     request: GeminiMappingRequest,
     customApiKey?: string
   ): Promise<GeminiMappingResponse> {
-    const apiKey = customApiKey || (await getStoredApiKey());
-
-    if (!apiKey || apiKey.trim() === '') {
-      throw new GeminiError(
-        'API_KEY_MISSING',
-        "Clé API Gemini non configurée. Veuillez renseigner votre clé API dans les paramètres de l'extension."
-      );
-    }
-
-    const endpointUrl = `https://generativelanguage.googleapis.com/${this.config.apiVersion}/models/${encodeURIComponent(this.config.model)}:generateContent`;
+    const apiKey = await this.resolveApiKey(customApiKey);
 
     const userPayload = {
       formSchema: request.formSchema,
@@ -208,6 +202,181 @@ export class GeminiService {
         responseSchema: this.buildResponseSchema(),
       },
     };
+
+    const parsedOutput = await this.callGenerateContent(requestBody, apiKey);
+
+    if (!parsedOutput || !Array.isArray(parsedOutput.mappings)) {
+      throw new GeminiError(
+        'INVALID_RESPONSE',
+        "Structure de réponse invalide : propriété 'mappings' absente ou non-tableau."
+      );
+    }
+
+    // Validation et assainissement contre le catalogue fermé
+    const sanitizedMappings: GeminiFieldMapping[] = parsedOutput.mappings.map((m: any) => {
+      const fieldId = String(m.fieldId || '');
+      let canonicalPath = m.canonicalPath ? String(m.canonicalPath) : null;
+      let confidence = typeof m.confidence === 'number' ? Math.max(0, Math.min(1, m.confidence)) : 0;
+      let reason = String(m.reason || 'Correspondance déterminée par Gemini');
+
+      // Sécurité : vérification stricte contre le catalogue fermé
+      if (canonicalPath && !isValidCanonicalPath(canonicalPath)) {
+        reason = `Chemin "${canonicalPath}" non présent dans le catalogue fermé — mapping ignoré.`;
+        canonicalPath = null;
+        confidence = 0.0;
+      }
+
+      return {
+        fieldId,
+        canonicalPath: canonicalPath as any,
+        confidence,
+        reason,
+        suggestedValue: m.suggestedValue,
+      };
+    });
+
+    return {
+      mappings: sanitizedMappings,
+      model: this.config.model,
+      summary: parsedOutput.summary || undefined,
+    };
+  }
+
+  /**
+   * Construit le prompt système d'instructions pour la lecture d'un document
+   * (carte grise, permis, relevé d'information, pièce d'identité, ...).
+   */
+  private buildDocumentSystemInstruction(): string {
+    return [
+      "Tu es un agent IA spécialisé dans la lecture de documents d'assurance automobile.",
+      "Ton rôle est d'extraire UNIQUEMENT les informations réellement présentes et lisibles dans le document fourni.",
+      '',
+      'RÈGLES STRICTES ET NON NÉGOCIABLES :',
+      "1. N'extrais que des informations explicitement présentes et lisibles dans le document. N'invente et ne complète JAMAIS un champ absent, illisible ou incertain.",
+      '2. Pour chaque information extraite, indique son chemin canonique EXACTEMENT parmi les chemins autorisés fournis. Si aucun chemin ne correspond, ignore cette information (ne la retourne pas).',
+      '3. Indique un score de confiance entre 0.00 et 1.00 reflétant la lisibilité et la certitude de la valeur lue (0.85+ = certaine et parfaitement lisible ; en dessous = à confirmer par un humain).',
+      '4. Tu ne dois JAMAIS inventer un chemin canonique qui ne figure pas dans la liste des chemins autorisés.',
+      '5. Retourne exclusivement un JSON valide respectant le schéma demandé, sans texte introductif ni markdown.',
+    ].join('\n');
+  }
+
+  /** Schéma JSON attendu pour l'extraction de document (Structured Output Gemini). */
+  private buildDocumentResponseSchema(): Record<string, unknown> {
+    return {
+      type: 'OBJECT',
+      properties: {
+        fields: {
+          type: 'ARRAY',
+          description: 'Informations trouvées dans le document',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              canonicalPath: {
+                type: 'STRING',
+                description: 'Le chemin canonique exact (ex: vehicle.registration, client.firstName)',
+              },
+              value: {
+                type: 'STRING',
+                description: 'La valeur lue dans le document, sous forme texte',
+              },
+              confidence: {
+                type: 'NUMBER',
+                description: 'Score de confiance entre 0.00 et 1.00',
+              },
+            },
+            required: ['canonicalPath', 'value', 'confidence'],
+          },
+        },
+      },
+      required: ['fields'],
+    };
+  }
+
+  /**
+   * Envoie un document (PDF/PNG/JPEG, encodé en base64) à Gemini pour en
+   * extraire les informations utiles au dossier — réutilise EXACTEMENT le
+   * même client HTTP/config/clé que `analyzeForm` (`callGenerateContent`),
+   * avec un prompt et un schéma de sortie propres à la lecture de document.
+   */
+  async analyzeDocument(
+    request: GeminiDocumentExtractionRequest,
+    customApiKey?: string
+  ): Promise<GeminiDocumentExtractionResponse> {
+    const apiKey = await this.resolveApiKey(customApiKey);
+    const allowedCanonicalPaths = request.allowedCanonicalPaths || CANONICAL_PATHS;
+
+    const requestBody = {
+      systemInstruction: {
+        parts: [{ text: this.buildDocumentSystemInstruction() }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `Chemins canoniques autorisés :\n${JSON.stringify(allowedCanonicalPaths)}\n\nLis ce document et extrais uniquement les informations réellement présentes.`,
+            },
+            {
+              inlineData: {
+                mimeType: request.mimeType,
+                data: request.documentBase64,
+              },
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: 'application/json',
+        responseSchema: this.buildDocumentResponseSchema(),
+      },
+    };
+
+    const parsedOutput = await this.callGenerateContent(requestBody, apiKey);
+
+    if (!parsedOutput || !Array.isArray(parsedOutput.fields)) {
+      throw new GeminiError(
+        'INVALID_RESPONSE',
+        "Structure de réponse invalide : propriété 'fields' absente ou non-tableau."
+      );
+    }
+
+    // Validation et assainissement contre le catalogue fermé — un chemin
+    // inconnu ou une valeur absente est silencieusement ignoré (jamais inventé).
+    const sanitizedFields: GeminiDocumentExtractedField[] = [];
+    for (const f of parsedOutput.fields) {
+      const canonicalPath = f?.canonicalPath ? String(f.canonicalPath) : null;
+      if (!canonicalPath || !isValidCanonicalPath(canonicalPath)) continue;
+      if (f.value === undefined || f.value === null || f.value === '') continue;
+
+      const confidence = typeof f.confidence === 'number' ? Math.max(0, Math.min(1, f.confidence)) : 0;
+      sanitizedFields.push({ canonicalPath: canonicalPath as CanonicalPath, value: f.value, confidence });
+    }
+
+    return { fields: sanitizedFields, model: this.config.model };
+  }
+
+  /** Résout la clé API à utiliser, ou rejette proprement si aucune n'est configurée. */
+  private async resolveApiKey(customApiKey?: string): Promise<string> {
+    const apiKey = customApiKey || (await getStoredApiKey());
+    if (!apiKey || apiKey.trim() === '') {
+      throw new GeminiError(
+        'API_KEY_MISSING',
+        "Clé API Gemini non configurée. Veuillez renseigner votre clé API dans les paramètres de l'extension."
+      );
+    }
+    return apiKey;
+  }
+
+  /**
+   * Appel HTTP bas niveau vers `generateContent`, commun à `analyzeForm` et
+   * `analyzeDocument` — un seul client Gemini, deux prompts/schémas différents.
+   * Retourne le JSON structuré déjà extrait du candidat (non encore validé
+   * contre le catalogue fermé : cette étape reste à la charge de l'appelant,
+   * qui seul connaît la forme attendue — `mappings` ou `fields`).
+   */
+  private async callGenerateContent(requestBody: Record<string, unknown>, apiKey: string): Promise<any> {
+    const endpointUrl = `https://generativelanguage.googleapis.com/${this.config.apiVersion}/models/${encodeURIComponent(this.config.model)}:generateContent`;
 
     const controller = new AbortController();
     const timerId = setTimeout(() => controller.abort(), this.config.timeoutMs);
@@ -290,50 +459,13 @@ export class GeminiService {
       );
     }
 
-    let parsedOutput: any;
     try {
-      parsedOutput = JSON.parse(candidateText);
+      return JSON.parse(candidateText);
     } catch (err: any) {
       throw new GeminiError(
         'PARSE_ERROR',
         `Le contenu retourné par Gemini n'est pas un JSON valide : ${candidateText.slice(0, 150)}...`
       );
     }
-
-    if (!parsedOutput || !Array.isArray(parsedOutput.mappings)) {
-      throw new GeminiError(
-        'INVALID_RESPONSE',
-        "Structure de réponse invalide : propriété 'mappings' absente ou non-tableau."
-      );
-    }
-
-    // Validation et assainissement contre le catalogue fermé
-    const sanitizedMappings: GeminiFieldMapping[] = parsedOutput.mappings.map((m: any) => {
-      const fieldId = String(m.fieldId || '');
-      let canonicalPath = m.canonicalPath ? String(m.canonicalPath) : null;
-      let confidence = typeof m.confidence === 'number' ? Math.max(0, Math.min(1, m.confidence)) : 0;
-      let reason = String(m.reason || 'Correspondance déterminée par Gemini');
-
-      // Sécurité : vérification stricte contre le catalogue fermé
-      if (canonicalPath && !isValidCanonicalPath(canonicalPath)) {
-        reason = `Chemin "${canonicalPath}" non présent dans le catalogue fermé — mapping ignoré.`;
-        canonicalPath = null;
-        confidence = 0.0;
-      }
-
-      return {
-        fieldId,
-        canonicalPath: canonicalPath as any,
-        confidence,
-        reason,
-        suggestedValue: m.suggestedValue,
-      };
-    });
-
-    return {
-      mappings: sanitizedMappings,
-      model: this.config.model,
-      summary: parsedOutput.summary || undefined,
-    };
   }
 }

@@ -1,7 +1,7 @@
 import { MockDataProvider } from '../providers/mock-data-provider';
 import { ExtensionMessage } from '../shared/messages';
 import { ExternalRequestMessage } from '../shared/external-messages';
-import { handleFillExtranetQuote, handlePrepareExtranetQuote } from './external-message-handler';
+import { handleAnalyzeDocument, handleFillExtranetQuote, handlePrepareExtranetQuote } from './external-message-handler';
 import { FormMemoryStore } from './form-memory-store';
 import { SessionStore } from './session-store';
 import {
@@ -213,6 +213,25 @@ chrome.runtime.onMessageExternal.addListener(
             quoteFileId: message.quoteFileId,
             extranetId: message.extranetId,
             error: err instanceof Error ? err.message : "Erreur lors du remplissage de l'extranet.",
+          })
+        );
+      return true;
+    }
+
+    if (message.type === 'ANALYZE_DOCUMENT') {
+      handleAnalyzeDocument(message, geminiService)
+        .then((fields) =>
+          sendResponse({
+            type: 'DOCUMENT_OCR_RESULT',
+            documentId: message.documentId,
+            fields,
+          })
+        )
+        .catch((err: unknown) =>
+          sendResponse({
+            type: 'DOCUMENT_OCR_ERROR',
+            documentId: message.documentId,
+            error: err instanceof Error ? err.message : "Erreur lors de l'analyse du document.",
           })
         );
       return true;

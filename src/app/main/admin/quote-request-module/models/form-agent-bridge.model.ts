@@ -73,11 +73,42 @@ export interface FillExtranetErrorMessage {
   error: string;
 }
 
+/** Fiabilité reçue pour un champ lu par OCR — jamais le score brut Gemini (voir extension). */
+export type FormAgentOcrConfidence = 'high' | 'low';
+
+export interface FormAgentOcrField {
+  canonicalPath: string;
+  value: string | number | boolean;
+  confidence: FormAgentOcrConfidence;
+}
+
+export interface AnalyzeDocumentMessage {
+  type: 'ANALYZE_DOCUMENT';
+  documentId: string;
+  /** Contenu du document encodé en base64 (sans préfixe `data:...;base64,`). */
+  documentBase64: string;
+  mimeType: string;
+}
+
+export interface DocumentOcrResultMessage {
+  type: 'DOCUMENT_OCR_RESULT';
+  documentId: string;
+  fields: FormAgentOcrField[];
+}
+
+export interface DocumentOcrErrorMessage {
+  type: 'DOCUMENT_OCR_ERROR';
+  documentId: string;
+  error: string;
+}
+
 export type FormAgentResponseMessage =
   | ExtranetFormRequirementsMessage
   | ExtranetAnalysisErrorMessage
   | FillExtranetResultMessage
-  | FillExtranetErrorMessage;
+  | FillExtranetErrorMessage
+  | DocumentOcrResultMessage
+  | DocumentOcrErrorMessage;
 
 /** Résultat de remplissage tel qu'exploité par Angular (champs manquants déjà convertis en `RequiredField[]`). */
 export interface FillOutcome {

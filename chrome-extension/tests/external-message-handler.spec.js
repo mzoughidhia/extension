@@ -9,6 +9,7 @@ const {
   handlePrepareExtranetQuote,
   computeFillOutcome,
   handleFillExtranetQuote,
+  handleAnalyzeDocument,
 } = await loadRealModule('src/background/external-message-handler.ts');
 
 function field(overrides = {}) {
@@ -392,6 +393,98 @@ describe('external-message-handler — protocole Angular ↔ extension (vrai cod
 
       const serialized = JSON.stringify(messagesSentToTab);
       assert.ok(!/password|cookie|token|credential/i.test(serialized));
+    });
+  });
+
+  describe('handleAnalyzeDocument (OCR réel via Gemini, orchestration réelle)', () => {
+    function stubGeminiService(fields) {
+      const calls = [];
+      return {
+        calls,
+        async analyzeDocument(request) {
+          calls.push(request);
+          return { fields, model: 'gemini-2.5-flash' };
+        },
+      };
+    }
+
+    it("appelle geminiService.analyzeDocument avec le document et le catalogue fermé — jamais de clé API dans le message", async () => {
+      const geminiService = stubGeminiService([]);
+
+      await handleAnalyzeDocument(
+        { type: 'ANALYZE_DOCUMENT', documentId: 'doc-1', documentBase64: 'QUJD', mimeType: 'image/png' },
+        geminiService
+      );
+
+      assert.equal(geminiService.calls.length, 1);
+      assert.equal(geminiService.calls[0].documentBase64, 'QUJD');
+      assert.equal(geminiService.calls[0].mimeType, 'image/png');
+      assert.ok(Array.isArray(geminiService.calls[0].allowedCanonicalPaths));
+      const serialized = JSON.stringify(geminiService.calls[0]);
+      assert.ok(!/api[_-]?key/i.test(serialized));
+    });
+
+    it('convertit une confiance Gemini élevée en "high" et une confiance faible en "low"', async () => {
+      const geminiService = stubGeminiService([
+        { canonicalPath: 'vehicle.brand', value: 'Yamaha', confidence: 0.97 },
+        { canonicalPath: 'vehicle.model', value: 'MT-07', confidence: 0.4 },
+      ]);
+
+      const fields = await handleAnalyzeDocument(
+        { type: 'ANALYZE_DOCUMENT', documentId: 'doc-1', documentBase64: 'QUJD', mimeType: 'image/png' },
+        geminiService
+      );
+
+      assert.deepEqual(
+        fields.find((f) => f.canonicalPath === 'vehicle.brand'),
+        { canonicalPath: 'vehicle.brand', value: 'Yamaha', confidence: 'high' }
+      );
+      assert.deepEqual(
+        fields.find((f) => f.canonicalPath === 'vehicle.model'),
+        { canonicalPath: 'vehicle.model', value: 'MT-07', confidence: 'low' }
+      );
+    });
+
+    it('traduit les chemins canoniques extension → Angular (ex : client.address.street → client.address)', async () => {
+      const geminiService = stubGeminiService([
+        { canonicalPath: 'client.address.street', value: '12 rue des Lilas', confidence: 0.9 },
+      ]);
+
+      const fields = await handleAnalyzeDocument(
+        { type: 'ANALYZE_DOCUMENT', documentId: 'doc-1', documentBase64: 'QUJD', mimeType: 'application/pdf' },
+        geminiService
+      );
+
+      assert.equal(fields.length, 1);
+      assert.equal(fields[0].canonicalPath, 'client.address');
+    });
+
+    it("n'envoie jamais de score de confiance brut à Angular, uniquement high/low", async () => {
+      const geminiService = stubGeminiService([{ canonicalPath: 'vehicle.brand', value: 'Yamaha', confidence: 0.973421 }]);
+
+      const fields = await handleAnalyzeDocument(
+        { type: 'ANALYZE_DOCUMENT', documentId: 'doc-1', documentBase64: 'QUJD', mimeType: 'image/jpeg' },
+        geminiService
+      );
+
+      const serialized = JSON.stringify(fields);
+      assert.ok(!serialized.includes('0.973421'));
+      assert.ok(serialized.includes('"high"'));
+    });
+
+    it("propage une erreur Gemini à l'appelant (service-worker.ts la transforme en DOCUMENT_OCR_ERROR, jamais affichée telle quelle côté Angular)", async () => {
+      const geminiService = {
+        async analyzeDocument() {
+          throw new Error("Clé API Gemini invalide ou non autorisée (401).");
+        },
+      };
+
+      await assert.rejects(() =>
+        handleAnalyzeDocument(
+          { type: 'ANALYZE_DOCUMENT', documentId: 'doc-1', documentBase64: 'QUJD', mimeType: 'image/png' },
+          geminiService
+        )
+      );
     });
   });
 });

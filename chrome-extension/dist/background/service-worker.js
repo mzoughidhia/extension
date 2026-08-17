@@ -95,6 +95,58 @@ var MockDataProvider = class {
   }
 };
 
+// src/models/canonical-paths.ts
+var CANONICAL_PATHS = [
+  // ─── Client ───────────────────────────────────────────────
+  "client.firstName",
+  "client.lastName",
+  "client.nationalId",
+  "client.birthDate",
+  "client.phone",
+  "client.email",
+  "client.address.street",
+  "client.address.postalCode",
+  "client.address.city",
+  "client.address.country",
+  // ─── Véhicule ─────────────────────────────────────────────
+  "vehicle.registration",
+  "vehicle.brand",
+  "vehicle.model",
+  "vehicle.version",
+  "vehicle.firstRegistrationDate",
+  "vehicle.fiscalPower",
+  "vehicle.vehicleValue",
+  "vehicle.vehicleType",
+  "vehicle.usage",
+  "vehicle.parkingType",
+  "vehicle.purchaseDate",
+  // ─── Conducteur ───────────────────────────────────────────
+  "driver.firstName",
+  "driver.lastName",
+  "driver.birthDate",
+  "driver.licenseDate",
+  "driver.licenseType",
+  "driver.profession",
+  "driver.phone",
+  // ─── Historique d'assurance ───────────────────────────────
+  "insuranceHistory.currentlyInsured",
+  "insuranceHistory.previousInsurer",
+  "insuranceHistory.previousContractStartDate",
+  "insuranceHistory.previousContractEndDate",
+  "insuranceHistory.seniority",
+  "insuranceHistory.bonusMalus",
+  "insuranceHistory.claimsCount",
+  "insuranceHistory.responsibleClaimsCount",
+  "insuranceHistory.nonResponsibleClaimsCount",
+  "insuranceHistory.wasTerminated",
+  "insuranceHistory.terminatedByInsurer",
+  "insuranceHistory.terminationReason",
+  "insuranceHistory.terminationDate"
+];
+function isValidCanonicalPath(path) {
+  return CANONICAL_PATHS.includes(path);
+}
+
 // src/shared/canonical-path-bridge.ts
 var EXTENSION_TO_ANGULAR_PATH = {
   "client.address.street": "client.address",
@@ -171,6 +223,7 @@ function toExtensionCanonicalQuoteRequest(angular) {
 }
 
 // src/background/external-message-handler.ts
+var OCR_HIGH_CONFIDENCE_THRESHOLD = 0.85;
 function inferQuestionType(field) {
   if (field.options && field.options.length > 0) return "choice";
   if (field.type === "checkbox") return "boolean";
@@ -309,6 +362,26 @@ async function handleFillExtranetQuote(message) {
     lastStepReached: run.stepInfo?.currentStep ?? null
   };
 }
+async function handleAnalyzeDocument(message, geminiService2) {
+  const response = await geminiService2.analyzeDocument({
+    documentBase64: message.documentBase64,
+    mimeType: message.mimeType,
+    allowedCanonicalPaths: CANONICAL_PATHS
+  });
+  const byCanonicalPath = /* @__PURE__ */ new Map();
+  for (const field of response.fields) {
+    const angularPath = toAngularCanonicalPath(field.canonicalPath);
+    if (!angularPath) continue;
+    if (byCanonicalPath.has(angularPath)) continue;
+    const confidence = field.confidence >= OCR_HIGH_CONFIDENCE_THRESHOLD ? "high" : "low";
+    byCanonicalPath.set(angularPath, {
+      canonicalPath: angularPath,
+      value: field.value,
+      confidence
+    });
+  }
+  return Array.from(byCanonicalPath.values());
+}
 
 // src/models/form-memory.model.ts
 var FORM_MEMORY_VERSION = 1;
@@ -432,58 +505,6 @@ var SessionStore = class _SessionStore {
     }
   }
 };
-
-// src/models/canonical-paths.ts
-var CANONICAL_PATHS = [
-  // ─── Client ───────────────────────────────────────────────
-  "client.firstName",
-  "client.lastName",
-  "client.nationalId",
-  "client.birthDate",
-  "client.phone",
-  "client.email",
-  "client.address.street",
-  "client.address.postalCode",
-  "client.address.city",
-  "client.address.country",
-  // ─── Véhicule ─────────────────────────────────────────────
-  "vehicle.registration",
-  "vehicle.brand",
-  "vehicle.model",
-  "vehicle.version",
-  "vehicle.firstRegistrationDate",
-  "vehicle.fiscalPower",
-  "vehicle.vehicleValue",
-  "vehicle.vehicleType",
-  "vehicle.usage",
-  "vehicle.parkingType",
-  "vehicle.purchaseDate",
-  // ─── Conducteur ───────────────────────────────────────────
-  "driver.firstName",
-  "driver.lastName",
-  "driver.birthDate",
-  "driver.licenseDate",
-  "driver.licenseType",
-  "driver.profession",
-  "driver.phone",
-  // ─── Historique d'assurance ───────────────────────────────
-  "insuranceHistory.currentlyInsured",
-  "insuranceHistory.previousInsurer",
-  "insuranceHistory.previousContractStartDate",
-  "insuranceHistory.previousContractEndDate",
-  "insuranceHistory.seniority",
-  "insuranceHistory.bonusMalus",
-  "insuranceHistory.claimsCount",
-  "insuranceHistory.responsibleClaimsCount",
-  "insuranceHistory.nonResponsibleClaimsCount",
-  "insuranceHistory.wasTerminated",
-  "insuranceHistory.terminatedByInsurer",
-  "insuranceHistory.terminationReason",
-  "insuranceHistory.terminationDate"
-];
-function isValidCanonicalPath(path) {
-  return CANONICAL_PATHS.includes(path);
-}
 
 // src/background/gemini.service.ts
 var GeminiError = class extends Error {
@@ -610,14 +631,7 @@ var GeminiService = class {
    * Envoie la requête de mapping à l'API Google Gemini.
    */
   async analyzeForm(request, customApiKey) {
-    const apiKey = customApiKey || await getStoredApiKey();
-    if (!apiKey || apiKey.trim() === "") {
-      throw new GeminiError(
-        "API_KEY_MISSING",
-        "Cl\xE9 API Gemini non configur\xE9e. Veuillez renseigner votre cl\xE9 API dans les param\xE8tres de l'extension."
-      );
-    }
-    const endpointUrl = `https://generativelanguage.googleapis.com/${this.config.apiVersion}/models/${encodeURIComponent(this.config.model)}:generateContent`;
+    const apiKey = await this.resolveApiKey(customApiKey);
     const userPayload = {
       formSchema: request.formSchema,
       availableData: request.availableData,
@@ -645,6 +659,160 @@ ${JSON.stringify(userPayload, null, 2)}`
         responseSchema: this.buildResponseSchema()
       }
     };
+    const parsedOutput = await this.callGenerateContent(requestBody, apiKey);
+    if (!parsedOutput || !Array.isArray(parsedOutput.mappings)) {
+      throw new GeminiError(
+        "INVALID_RESPONSE",
+        "Structure de r\xE9ponse invalide : propri\xE9t\xE9 'mappings' absente ou non-tableau."
+      );
+    }
+    const sanitizedMappings = parsedOutput.mappings.map((m) => {
+      const fieldId = String(m.fieldId || "");
+      let canonicalPath = m.canonicalPath ? String(m.canonicalPath) : null;
+      let confidence = typeof m.confidence === "number" ? Math.max(0, Math.min(1, m.confidence)) : 0;
+      let reason = String(m.reason || "Correspondance d\xE9termin\xE9e par Gemini");
+      if (canonicalPath && !isValidCanonicalPath(canonicalPath)) {
+        reason = `Chemin "${canonicalPath}" non pr\xE9sent dans le catalogue ferm\xE9 \u2014 mapping ignor\xE9.`;
+        canonicalPath = null;
+        confidence = 0;
+      }
+      return {
+        fieldId,
+        canonicalPath,
+        confidence,
+        reason,
+        suggestedValue: m.suggestedValue
+      };
+    });
+    return {
+      mappings: sanitizedMappings,
+      model: this.config.model,
+      summary: parsedOutput.summary || void 0
+    };
+  }
+  /**
+   * Construit le prompt système d'instructions pour la lecture d'un document
+   * (carte grise, permis, relevé d'information, pièce d'identité, ...).
+   */
+  buildDocumentSystemInstruction() {
+    return [
+      "Tu es un agent IA sp\xE9cialis\xE9 dans la lecture de documents d'assurance automobile.",
+      "Ton r\xF4le est d'extraire UNIQUEMENT les informations r\xE9ellement pr\xE9sentes et lisibles dans le document fourni.",
+      "",
+      "R\xC8GLES STRICTES ET NON N\xC9GOCIABLES :",
+      "1. N'extrais que des informations explicitement pr\xE9sentes et lisibles dans le document. N'invente et ne compl\xE8te JAMAIS un champ absent, illisible ou incertain.",
+      "2. Pour chaque information extraite, indique son chemin canonique EXACTEMENT parmi les chemins autoris\xE9s fournis. Si aucun chemin ne correspond, ignore cette information (ne la retourne pas).",
+      "3. Indique un score de confiance entre 0.00 et 1.00 refl\xE9tant la lisibilit\xE9 et la certitude de la valeur lue (0.85+ = certaine et parfaitement lisible ; en dessous = \xE0 confirmer par un humain).",
+      "4. Tu ne dois JAMAIS inventer un chemin canonique qui ne figure pas dans la liste des chemins autoris\xE9s.",
+      "5. Retourne exclusivement un JSON valide respectant le sch\xE9ma demand\xE9, sans texte introductif ni markdown."
+    ].join("\n");
+  }
+  /** Schéma JSON attendu pour l'extraction de document (Structured Output Gemini). */
+  buildDocumentResponseSchema() {
+    return {
+      type: "OBJECT",
+      properties: {
+        fields: {
+          type: "ARRAY",
+          description: "Informations trouv\xE9es dans le document",
+          items: {
+            type: "OBJECT",
+            properties: {
+              canonicalPath: {
+                type: "STRING",
+                description: "Le chemin canonique exact (ex: vehicle.registration, client.firstName)"
+              },
+              value: {
+                type: "STRING",
+                description: "La valeur lue dans le document, sous forme texte"
+              },
+              confidence: {
+                type: "NUMBER",
+                description: "Score de confiance entre 0.00 et 1.00"
+              }
+            },
+            required: ["canonicalPath", "value", "confidence"]
+          }
+        }
+      },
+      required: ["fields"]
+    };
+  }
+  /**
+   * Envoie un document (PDF/PNG/JPEG, encodé en base64) à Gemini pour en
+   * extraire les informations utiles au dossier — réutilise EXACTEMENT le
+   * même client HTTP/config/clé que `analyzeForm` (`callGenerateContent`),
+   * avec un prompt et un schéma de sortie propres à la lecture de document.
+   */
+  async analyzeDocument(request, customApiKey) {
+    const apiKey = await this.resolveApiKey(customApiKey);
+    const allowedCanonicalPaths = request.allowedCanonicalPaths || CANONICAL_PATHS;
+    const requestBody = {
+      systemInstruction: {
+        parts: [{ text: this.buildDocumentSystemInstruction() }]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Chemins canoniques autoris\xE9s :
+${JSON.stringify(allowedCanonicalPaths)}
+
+Lis ce document et extrais uniquement les informations r\xE9ellement pr\xE9sentes.`
+            },
+            {
+              inlineData: {
+                mimeType: request.mimeType,
+                data: request.documentBase64
+              }
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: this.buildDocumentResponseSchema()
+      }
+    };
+    const parsedOutput = await this.callGenerateContent(requestBody, apiKey);
+    if (!parsedOutput || !Array.isArray(parsedOutput.fields)) {
+      throw new GeminiError(
+        "INVALID_RESPONSE",
+        "Structure de r\xE9ponse invalide : propri\xE9t\xE9 'fields' absente ou non-tableau."
+      );
+    }
+    const sanitizedFields = [];
+    for (const f of parsedOutput.fields) {
+      const canonicalPath = f?.canonicalPath ? String(f.canonicalPath) : null;
+      if (!canonicalPath || !isValidCanonicalPath(canonicalPath)) continue;
+      if (f.value === void 0 || f.value === null || f.value === "") continue;
+      const confidence = typeof f.confidence === "number" ? Math.max(0, Math.min(1, f.confidence)) : 0;
+      sanitizedFields.push({ canonicalPath, value: f.value, confidence });
+    }
+    return { fields: sanitizedFields, model: this.config.model };
+  }
+  /** Résout la clé API à utiliser, ou rejette proprement si aucune n'est configurée. */
+  async resolveApiKey(customApiKey) {
+    const apiKey = customApiKey || await getStoredApiKey();
+    if (!apiKey || apiKey.trim() === "") {
+      throw new GeminiError(
+        "API_KEY_MISSING",
+        "Cl\xE9 API Gemini non configur\xE9e. Veuillez renseigner votre cl\xE9 API dans les param\xE8tres de l'extension."
+      );
+    }
+    return apiKey;
+  }
+  /**
+   * Appel HTTP bas niveau vers `generateContent`, commun à `analyzeForm` et
+   * `analyzeDocument` — un seul client Gemini, deux prompts/schémas différents.
+   * Retourne le JSON structuré déjà extrait du candidat (non encore validé
+   * contre le catalogue fermé : cette étape reste à la charge de l'appelant,
+   * qui seul connaît la forme attendue — `mappings` ou `fields`).
+   */
+  async callGenerateContent(requestBody, apiKey) {
+    const endpointUrl = `https://generativelanguage.googleapis.com/${this.config.apiVersion}/models/${encodeURIComponent(this.config.model)}:generateContent`;
     const controller = new AbortController();
     const timerId = setTimeout(() => controller.abort(), this.config.timeoutMs);
     let rawResponse;
@@ -714,44 +882,14 @@ ${JSON.stringify(userPayload, null, 2)}`
         "R\xE9ponse Gemini vide ou bloqu\xE9e par les filtres de s\xE9curit\xE9."
       );
     }
-    let parsedOutput;
     try {
-      parsedOutput = JSON.parse(candidateText);
+      return JSON.parse(candidateText);
     } catch (err) {
       throw new GeminiError(
         "PARSE_ERROR",
         `Le contenu retourn\xE9 par Gemini n'est pas un JSON valide : ${candidateText.slice(0, 150)}...`
       );
     }
-    if (!parsedOutput || !Array.isArray(parsedOutput.mappings)) {
-      throw new GeminiError(
-        "INVALID_RESPONSE",
-        "Structure de r\xE9ponse invalide : propri\xE9t\xE9 'mappings' absente ou non-tableau."
-      );
-    }
-    const sanitizedMappings = parsedOutput.mappings.map((m) => {
-      const fieldId = String(m.fieldId || "");
-      let canonicalPath = m.canonicalPath ? String(m.canonicalPath) : null;
-      let confidence = typeof m.confidence === "number" ? Math.max(0, Math.min(1, m.confidence)) : 0;
-      let reason = String(m.reason || "Correspondance d\xE9termin\xE9e par Gemini");
-      if (canonicalPath && !isValidCanonicalPath(canonicalPath)) {
-        reason = `Chemin "${canonicalPath}" non pr\xE9sent dans le catalogue ferm\xE9 \u2014 mapping ignor\xE9.`;
-        canonicalPath = null;
-        confidence = 0;
-      }
-      return {
-        fieldId,
-        canonicalPath,
-        confidence,
-        reason,
-        suggestedValue: m.suggestedValue
-      };
-    });
-    return {
-      mappings: sanitizedMappings,
-      model: this.config.model,
-      summary: parsedOutput.summary || void 0
-    };
   }
 };
 
@@ -895,6 +1033,22 @@ chrome.runtime.onMessageExternal.addListener(
           quoteFileId: message.quoteFileId,
           extranetId: message.extranetId,
           error: err instanceof Error ? err.message : "Erreur lors du remplissage de l'extranet."
+        })
+      );
+      return true;
+    }
+    if (message.type === "ANALYZE_DOCUMENT") {
+      handleAnalyzeDocument(message, geminiService).then(
+        (fields) => sendResponse({
+          type: "DOCUMENT_OCR_RESULT",
+          documentId: message.documentId,
+          fields
+        })
+      ).catch(
+        (err) => sendResponse({
+          type: "DOCUMENT_OCR_ERROR",
+          documentId: message.documentId,
+          error: err instanceof Error ? err.message : "Erreur lors de l'analyse du document."
         })
       );
       return true;

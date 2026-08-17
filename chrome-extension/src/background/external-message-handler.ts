@@ -1,14 +1,22 @@
+import { GeminiService } from './gemini.service';
 import { AutomationRun, FieldFillResult } from '../models/automation-run.model';
+import { CANONICAL_PATHS } from '../models/canonical-paths';
 import { DetectedField } from '../models/detected-field.model';
 import { FieldMapping, MappingStatus } from '../models/field-mapping.model';
 import { toAngularCanonicalPath, toExtensionCanonicalQuoteRequest } from '../shared/canonical-path-bridge';
 import {
+  AnalyzeDocumentMessage,
   ExternalFieldAnswerType,
+  ExternalOcrConfidence,
+  ExternalOcrField,
   ExternalRequiredField,
   FillExtranetQuoteMessage,
   FillExtranetStatus,
   PrepareExtranetQuoteMessage,
 } from '../shared/external-messages';
+
+/** Score Gemini à partir duquel une information lue est considérée fiable (voir `GeminiService`). */
+const OCR_HIGH_CONFIDENCE_THRESHOLD = 0.85;
 
 /**
  * Déduit un type de réponse simple à partir du champ détecté — jamais de
@@ -235,4 +243,44 @@ export async function handleFillExtranetQuote(
     ...computeFillOutcome(run.mappings, fillResults),
     lastStepReached: run.stepInfo?.currentStep ?? null,
   };
+}
+
+/**
+ * Orchestration complète d'une demande `ANALYZE_DOCUMENT` : envoie le
+ * document au même `GeminiService` que l'analyse de formulaire (client HTTP,
+ * clé API, gestion d'erreurs — INCHANGÉS), avec un prompt et un schéma de
+ * sortie propres à la lecture de document. Ne touche à aucun onglet/DOM.
+ *
+ * La confiance brute Gemini (0.00–1.00) n'est jamais transmise à Angular :
+ * seul un niveau `high`/`low` traverse la frontière (même principe que
+ * `toExternalRequiredFields`, qui ne transmet jamais de score).
+ */
+export async function handleAnalyzeDocument(
+  message: AnalyzeDocumentMessage,
+  geminiService: GeminiService
+): Promise<ExternalOcrField[]> {
+  const response = await geminiService.analyzeDocument({
+    documentBase64: message.documentBase64,
+    mimeType: message.mimeType,
+    allowedCanonicalPaths: CANONICAL_PATHS,
+  });
+
+  const byCanonicalPath = new Map<string, ExternalOcrField>();
+
+  for (const field of response.fields) {
+    const angularPath = toAngularCanonicalPath(field.canonicalPath);
+    if (!angularPath) continue; // pas encore modélisé côté Angular : jamais transmis
+    if (byCanonicalPath.has(angularPath)) continue;
+
+    const confidence: ExternalOcrConfidence =
+      field.confidence >= OCR_HIGH_CONFIDENCE_THRESHOLD ? 'high' : 'low';
+
+    byCanonicalPath.set(angularPath, {
+      canonicalPath: angularPath,
+      value: field.value,
+      confidence,
+    });
+  }
+
+  return Array.from(byCanonicalPath.values());
 }

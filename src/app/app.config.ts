@@ -29,7 +29,7 @@ import {
 import { environment } from '../environments/environment';
 import { DEFAULT_GENERAL_STYLING } from './core/constants/styling.structure';
 import { ROUTES } from './core/routing/app.routes';
-import { MockOcrProvider } from './main/admin/document-module/services/mock-ocr.provider';
+import { GeminiOcrProvider } from './main/admin/document-module/services/gemini-ocr.provider';
 import { OcrProvider } from './main/admin/document-module/services/ocr-provider';
 
 const { emulatorHost, emulatorPorts, useEmulators } = environment;
@@ -89,9 +89,10 @@ export const appConfig: ApplicationConfig = {
     { provide: DatabaseProvider, useClass: FirestoreProvider },
     { provide: BackendProvider, useClass: FirebaseFunctionsProvider },
     { provide: StorageProvider, useClass: FirestorageProvider },
-    // ⚠️ MOCK — à remplacer par un vrai fournisseur OCR (Google Vision, Document AI, ...)
-    // en changeant uniquement cette ligne. Aucun composant Angular n'a à être modifié.
-    { provide: OcrProvider, useClass: MockOcrProvider },
+    // Lecture réelle des documents via Form Agent (l'extension) → Gemini.
+    // `MockOcrProvider` reste disponible pour les tests unitaires (binding
+    // remplacé explicitement dans chaque `TestBed.configureTestingModule`).
+    { provide: OcrProvider, useClass: GeminiOcrProvider },
 
     provideAnimationsAsync(),
     provideHttpClient(withFetch()),

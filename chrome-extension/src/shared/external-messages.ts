@@ -145,9 +145,40 @@ export interface FillExtranetErrorMessage {
   error: string;
 }
 
-export type ExternalRequestMessage = PrepareExtranetQuoteMessage | FillExtranetQuoteMessage;
+/** Fiabilité communiquée à Angular pour un champ lu par OCR — jamais le score brut Gemini. */
+export type ExternalOcrConfidence = 'high' | 'low';
+
+export interface ExternalOcrField {
+  canonicalPath: string;
+  value: string | number | boolean;
+  confidence: ExternalOcrConfidence;
+}
+
+export interface AnalyzeDocumentMessage {
+  type: 'ANALYZE_DOCUMENT';
+  documentId: string;
+  /** Contenu du document encodé en base64 (sans préfixe `data:...;base64,`). */
+  documentBase64: string;
+  mimeType: string;
+}
+
+export interface DocumentOcrResultMessage {
+  type: 'DOCUMENT_OCR_RESULT';
+  documentId: string;
+  fields: ExternalOcrField[];
+}
+
+export interface DocumentOcrErrorMessage {
+  type: 'DOCUMENT_OCR_ERROR';
+  documentId: string;
+  error: string;
+}
+
+export type ExternalRequestMessage = PrepareExtranetQuoteMessage | FillExtranetQuoteMessage | AnalyzeDocumentMessage;
 export type ExternalResponseMessage =
   | ExtranetFormRequirementsMessage
   | ExtranetAnalysisErrorMessage
   | FillExtranetResultMessage
-  | FillExtranetErrorMessage;
+  | FillExtranetErrorMessage
+  | DocumentOcrResultMessage
+  | DocumentOcrErrorMessage;

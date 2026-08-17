@@ -4,8 +4,10 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { RequiredField } from '../models/questionnaire.model';
 import {
+  AnalyzeDocumentMessage,
   FillExtranetQuoteMessage,
   FillOutcome,
+  FormAgentOcrField,
   FormAgentResponseMessage,
   PrepareExtranetQuoteMessage,
   toRequiredFields,
@@ -41,6 +43,14 @@ export class FormAgentFillError extends Error {
   constructor() {
     super("Le remplissage de l'extranet a échoué.");
     this.name = 'FormAgentFillError';
+  }
+}
+
+/** La lecture du document a échoué (jamais de détail Gemini/clé API exposé). */
+export class FormAgentDocumentAnalysisError extends Error {
+  constructor() {
+    super('La lecture du document a échoué.');
+    this.name = 'FormAgentDocumentAnalysisError';
   }
 }
 
@@ -133,6 +143,31 @@ export class FormAgentBridgeService {
         missingFields: toRequiredFields(response.missingFields),
         lastStepReached: response.lastStepReached,
       };
+    });
+  }
+
+  /**
+   * Demande à Form Agent de lire un document (PDF/PNG/JPEG) via le même
+   * service Gemini que l'analyse de formulaire — la clé API reste dans le
+   * stockage de l'extension, jamais transmise à Angular. Ne déclenche aucun
+   * remplissage d'extranet.
+   */
+  analyzeDocument(params: { documentId: string; documentBase64: string; mimeType: string }): Observable<FormAgentOcrField[]> {
+    const message: AnalyzeDocumentMessage = {
+      type: 'ANALYZE_DOCUMENT',
+      documentId: params.documentId,
+      documentBase64: params.documentBase64,
+      mimeType: params.mimeType,
+    };
+
+    return this.sendExternalMessage(message, (response) => {
+      if (response.type === 'DOCUMENT_OCR_ERROR') {
+        throw new FormAgentDocumentAnalysisError();
+      }
+      if (response.type !== 'DOCUMENT_OCR_RESULT') {
+        throw new FormAgentUnreachableError();
+      }
+      return response.fields;
     });
   }
 

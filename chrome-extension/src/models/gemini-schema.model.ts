@@ -102,3 +102,27 @@ export interface GeminiMappingResponse {
 }
 
 export const DEFAULT_ALLOWED_CANONICAL_PATHS: readonly CanonicalPath[] = CANONICAL_PATHS;
+
+/**
+ * Contrat de requête pour la lecture d'un document (OCR réel via Gemini) —
+ * réutilise le même client/config Gemini que `analyzeForm`, avec un schéma de
+ * sortie différent (extraction de champs, pas de mapping de formulaire).
+ */
+export interface GeminiDocumentExtractionRequest {
+  /** Contenu du document encodé en base64 (sans préfixe `data:...;base64,`). */
+  documentBase64: string;
+  mimeType: string;
+  allowedCanonicalPaths: readonly CanonicalPath[];
+}
+
+export interface GeminiDocumentExtractedField {
+  canonicalPath: CanonicalPath;
+  value: string | number | boolean;
+  /** Score de confiance estimé par l'IA (entre 0.00 et 1.00). */
+  confidence: number;
+}
+
+export interface GeminiDocumentExtractionResponse {
+  fields: GeminiDocumentExtractedField[];
+  model?: string;
+}
